@@ -18,7 +18,9 @@ def buildRAGqueryEngine(citeSources, llmModel="gpt-4o"):
         for doc in docs:
             all_docs.append(doc)
     index = VectorStoreIndex.from_documents(all_docs)
-    llm = OpenAI(model=llmModel)
+    llm = OpenAI(model=llmModel, 
+                 api_key=os.environ.get("OPENAI_API_KEY"), 
+                 organization=os.environ.get("OPENAI_ORG"))
 
     if citeSources:
         rag_query_engine = CitationQueryEngine.from_args(
@@ -39,8 +41,10 @@ def callRAG(uiManager, query, citeSources):
     resp = str(resp_raw)
     citations = []
     if citeSources:
+        # CURRENTLY BROKEN
         for nd in resp_raw.source_nodes:
             citations.append(str(nd.node.get_text()))
+        # print(citations)
         # print(response.source_nodes[0].node.get_text())
 
     resp = resp.replace('\n', '<br>\n')
@@ -100,6 +104,7 @@ def callRAG(uiManager, query, citeSources):
         new_resp = '\n'.join(new_resp_lines)
 
         for ct in citations:
+            # CURRENTLY BROKEN
             new_resp += '<br>\n'
             new_resp += ct.replace('\n','<br>\n')
 

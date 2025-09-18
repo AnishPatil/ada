@@ -795,23 +795,28 @@ class UIHandler(object):
                     #         ipt += '   geometryIndex=%d'%(self.activeGeometry+1)
 
                     chat_completion = sendToOpenAI(ipt, functionData)
+                    # print(chat_completion)
+                    # print(len(print(chat_completion.output)))
+                    # print(chat_completion.output)
+                    # print('==============================')
+                    # print(chat_completion.output)
 
-                    if chat_completion.choices[0].message.tool_calls is None:
-                        # OpenAI just did bad things, try again
-                        chat_completion = sendToOpenAI(ipt, functionData)
+                    # if chat_completion.choices[0].message.tool_calls is None:
+                    #     # OpenAI just did bad things, try again
+                    #     chat_completion = sendToOpenAI(ipt, functionData)
 
-                        if chat_completion.choices[0].message.tool_calls is None:
-                            # try one more time
-                            chat_completion = sendToOpenAI(ipt, functionData)
+                    #     if chat_completion.choices[0].message.tool_calls is None:
+                    #         # try one more time
+                    #         chat_completion = sendToOpenAI(ipt, functionData)
 
-                            # if this fails, there is probably an actual issue
-                            # I've never had something fail 3 times in a row
-                    if self._print_calls:
-                        print(chat_completion)
+                    #         # if this fails, there is probably an actual issue
+                    #         # I've never had something fail 3 times in a row
+                    # if self._print_calls:
+                    #     print(chat_completion)
 
-                    print(chat_completion)
-                    print(chat_completion.choices[0].message.tool_calls[0].function.name)
-                    print(json.loads(chat_completion.choices[0].message.tool_calls[0].function.arguments))
+                    print(chat_completion.output)
+                    print(chat_completion.output[0].name)
+                    print(json.loads(chat_completion.output[0].arguments))
                     # if chat_completion.choices[0].message.tool_calls[0].function.name == 'multi_tool_use':
                     #     # not currently supported 
                     #     if len(json.loads(chat_completion.choices[0].message.tool_calls[0].function.arguments)['tool_uses']) == 1:
@@ -831,10 +836,10 @@ class UIHandler(object):
                     # print(chat_completion.choices[0].message.tool_calls[0].function.name)
                     # print(json.loads(chat_completion.choices[0].message.tool_calls[0].function.arguments))
 
-                    functionName = chat_completion.choices[0].message.tool_calls[0].function.name
+                    functionName = chat_completion.output[0].name
                     if functionName in functionAllocationDict.keys():
                         functionHandle = functionAllocationDict[functionName]
-                        inputs = json.loads(chat_completion.choices[0].message.tool_calls[0].function.arguments)
+                        inputs = json.loads(chat_completion.output[0].arguments)
                         # if functionName in ['plotAirfoilGeometry','run']:
                         #     inputs['portNumber'] = portNumber
                         
@@ -851,7 +856,7 @@ class UIHandler(object):
                         inputs['rawInput']   = ipt
 
                         opt = functionHandle(**inputs)
-                        c.interpretaion = functionName + " : " + str(json.loads(chat_completion.choices[0].message.tool_calls[0].function.arguments))
+                        c.interpretaion = functionName + " : " + str(json.loads(chat_completion.output[0].arguments))
                         c.response = opt
 
                     else:

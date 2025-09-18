@@ -1,24 +1,14 @@
 import os
 from openai import OpenAI
 
-def callLLM(uiManager, ipt, model="gpt-4o"):
+def callLLM(uiManager, ipt, model="gpt-5"):
     client = OpenAI(
         api_key=os.environ.get("OPENAI_API_KEY"),
         organization=os.environ.get("OPENAI_ORG"),
     )
 
-
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": ipt,
-            }
-        ],
-        model = model,
-    )
-
-    resp = chat_completion.choices[0].message.content
+    full_resp = client.responses.create(model = model, input = ipt)
+    resp = full_resp.output_text
 
     resp = resp.replace('\n', '<br>\n')
     if "```" in resp:
