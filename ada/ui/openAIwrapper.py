@@ -20,22 +20,6 @@ def sendToOpenAI(ipt, functionData = None, model="gpt-4o"):
 
     tools = [{"type":"function"} | v for v in functionData]
 
-    # chat_completion = client.chat.completions.create(
-    #     messages=[
-    #         {
-    #             "role": "assistant",
-    #             # "content": "Always return your best guess as to the function being called.  Do not respond to the user or ask a question under any circumstances.  Your only role is to map the input to the appropriate function from the list you have been provided with",
-    #             "content": "Always output your response by using a tool.  Do not respond to the user or ask a question under any circumstances.", 
-    #         },
-    #         {
-    #             "role": "user",
-    #             "content": ipt,
-    #         }
-    #     ],
-    #     model = model,
-    #     tools=tools,
-    # )
-
     response = client.responses.create(
         model=model,
         # instructions="Always output your response by using a tool.  Do not respond to the user or ask a question under any circumstances.",
@@ -44,7 +28,7 @@ def sendToOpenAI(ipt, functionData = None, model="gpt-4o"):
             'role': 'user',
             'content': ipt,
         }],
-        tool_choice="required",
+        tool_choice="auto",
     )
 
     return response

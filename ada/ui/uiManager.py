@@ -25,6 +25,28 @@ from ada.analysis.apis.xfoil.api_ui import API_UI as xfoilAPI
 import natsort
 
 
+# --- Helper for safe JSON serialization ---
+def _json_default(o):
+    # Fallback serializer for objects that aren't JSON serializable
+    try:
+        import numpy as _np
+    except Exception:
+        _np = None
+    import datetime as _dt
+    from pathlib import Path as _Path
+
+    if _np is not None and isinstance(o, _np.ndarray):
+        return o.tolist()
+    if isinstance(o, (_dt.datetime, _dt.date)):
+        return o.isoformat()
+    if isinstance(o, set):
+        return list(o)
+    if isinstance(o, _Path):
+        return str(o)
+    # Last resort: string representation (avoids TypeError for custom classes like UIHandler)
+    return str(o)
+
+
 PATH_TO_ADA = os.environ['PATH_TO_ADA']
 
 colors = ['#0065cc', '#e69f00', '#009e73', '#d55e00', '#56b4ff', '#fca7c7', '#ede13f', '#666666', '#000000']
@@ -35,7 +57,7 @@ matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colors)
 class Call(object):
     def __init__(self):
         self.query         = None
-        self.interpretaion = None
+        self.interpretation = None
         self.response      = None
 
     def print_html(self, callIndex=0, isLast=False):
@@ -50,7 +72,7 @@ class Call(object):
         pstr += '    </div>\n'
         pstr += '    <div class="io-cell output-cell">\n'
         pstr += '        <div class="label io-text">Interpretation [%d]</div>\n'%(callIndex)
-        pstr += '        <div class="interpretation-cell io-text">%s</div>\n'%(self.interpretaion)
+        pstr += '        <div class="interpretation-cell io-text">%s</div>\n'%(self.interpretation)
         pstr += '    </div>\n'
         pstr += '    <div class="io-cell output-cell">\n'
         pstr += '        <div class="label io-text">Response [%d]</div>\n'%(callIndex)
@@ -59,6 +81,8 @@ class Call(object):
         pstr += '</div>\n'
         return pstr
 
+
+# Purpose: Represents an airfoil defined by Kulfan (CST) coefficients and knows how to render its parameters as a little HTML block for your UI.
 
 class AirfoilGeometry(Kulfan):
     def __init__(self):
@@ -190,17 +214,17 @@ class LocalAPI(baseAPI):
         functionData.append(functionDict)
         
         # ================================================================================================================================
-        # functionDict = self.make_basic_data()
-        # functionDict['name']='changeActiveGeometry'
-        # functionDict['description']='Changes the currently active geometry'
+        functionDict = self.make_basic_data()
+        functionDict['name']='changeActiveGeometry'
+        functionDict['description']='Changes the currently active geometry'
         
-        # functionDict['parameters']['properties']['activeGeometryIndex']={}
-        # functionDict['parameters']['properties']['activeGeometryIndex']['type']="string"
-        # functionDict['parameters']['properties']['activeGeometryIndex']['description']="The index (an integer) of the new active geometry"
+        functionDict['parameters']['properties']['activeGeometryIndex']={}
+        functionDict['parameters']['properties']['activeGeometryIndex']['type']="string"
+        functionDict['parameters']['properties']['activeGeometryIndex']['description']="The index (an integer) of the new active geometry"
         
-        # functionDict['parameters']['required'].extend(['activeGeometryIndex'])
+        functionDict['parameters']['required'].extend(['activeGeometryIndex'])
         
-        # functionData.append(functionDict)
+        functionData.append(functionDict)
         
         # ================================================================================================================================
         functionDict = self.make_basic_data()
@@ -309,6 +333,46 @@ class LocalAPI(baseAPI):
             
         # functionData.append(functionDict)
         # ================================================================================================================================
+        # ================================================================================================================================
+        # Meta-tool: plan and execute multiple tool calls in order
+        # functionDict = self.make_basic_data()
+        # functionDict['name'] = 'multi_tool_use'
+        # functionDict['description'] = (
+        #     "Plan and execute multiple tool calls in order. "
+        #     "Use this when the user's request requires more than one function call "
+        #     "(e.g., generate an airfoil, then run xfoil)."
+        # )
+        # functionDict['parameters']['properties']['tool_uses'] = {
+        #     "type": "array",
+        #     "minItems": 2,
+        #     "items": {
+        #         "type": "object",
+        #         "properties": {
+        #             "recipient_name": {
+        #                 "type": "string",
+        #                 "description": "Name of the tool to call (e.g., generateAirfoil, run, modifyGeometry)"
+        #             },
+        #             "parameters": {
+        #                 "type": "object",
+        #                 "description": "Arguments for that tool call"
+        #             }
+        #         },
+        #         "required": ["recipient_name", "parameters"]
+        #     },
+        #     "description": "Ordered list of tool calls to perform."
+        # }
+        # functionDict['parameters']['required'].extend(['tool_uses'])
+        # functionData.append(functionDict)
+        # ================================================================================================================================
+
+
+
+
+
+
+
+        # ================================================================================================================================
+
 
         return functionData
 
@@ -418,7 +482,7 @@ class LocalAPI(baseAPI):
         
     def changeActiveAnalysis(self, uiManager, activeAnalysisTool, activeAnalysisIndex, **kwargs):
         if activeAnalysisTool == 'None':
-            activeAnalyslsTool = uiManager.activeAnalysis[0]
+            activeAnalysisTool = uiManager.activeAnalysis[0]
         uiManager.activeAnalysis = (activeAnalysisTool , int(activeAnalysisIndex)-1 )
         return "Query task complete"
         
@@ -531,19 +595,55 @@ class LocalAPI(baseAPI):
         return "Query task complete"
 
     def run(self, uiManager, toolName='None', caseIndex='None', geometryIndex='None', **kwargs):
-        if toolName == 'None' or toolName == '':
-            toolName = uiManager.activeAnalysis[0]
-        if caseIndex == 'None' or caseIndex == '':
-            caseIndex = uiManager.activeAnalysis[1]+1
-        if geometryIndex == 'None' or geometryIndex == '':
-            geometryIndex = uiManager.activeGeometry+1
 
-        if toolName=='xfoil':
+        # --- Normalize geometryIndex early (ensure 1-based string) ---
+        try:
+            if geometryIndex not in (None, 'None', ''):
+                g = int(geometryIndex)
+                # If model/caller passed 0-based, convert 0 -> 1; otherwise assume already 1-based
+                if g == 0:
+                    geometryIndex = '1'
+                else:
+                    geometryIndex = str(g)
+            else:
+                # Fallback to active geometry (1-based)
+                geometryIndex = str(uiManager.activeGeometry + 1)
+        except Exception:
+            geometryIndex = str(uiManager.activeGeometry + 1)
+
+        # --- Normalize toolName and caseIndex ---
+        if toolName in ('None', ''):
+            toolName = uiManager.activeAnalysis[0]
+
+        # Normalize caseIndex to 1-based
+        try:
+            if caseIndex not in (None, 'None', ''):
+                ci = int(caseIndex)
+                # If caller passed 0-based, bump 0 -> 1; leave positive values as-is (assumed 1-based)
+                if ci == 0:
+                    caseIndex = '1'
+                else:
+                    caseIndex = str(ci)
+            else:
+                caseIndex = str(uiManager.activeAnalysis[1] + 1)
+        except Exception:
+            caseIndex = str(uiManager.activeAnalysis[1] + 1)
+
+        # --- Debug printout ---
+        # Debug print: show raw (0-based) index for clarity while using 1-based internally
+        try:
+            g0 = int(geometryIndex) - 1
+        except Exception:
+            g0 = uiManager.activeGeometry
+        print(f"[run] tool={toolName}, caseIndex={caseIndex}, geometryIndex(raw/0b)={g0}, activeGeom(1b)={uiManager.activeGeometry+1}")
+
+        # --- Execute the correct analysis tool ---
+        if toolName == 'xfoil':
             xfoil = xfoilAPI()
             res = xfoil.run(uiManager, toolName, int(caseIndex), int(geometryIndex), **kwargs)
             return res
         else:
-            raise ValueError('Invalid tool name %s'%(toolName))
+            raise ValueError(f"Invalid tool name {toolName}")
 
     def makeRequest(self, uiManager, rawInput, **kwargs):
         # uiManager.callRAG()
@@ -775,110 +875,211 @@ class UIHandler(object):
                             opt = functionAllocationDict[ipt_split[0]](ipt_split[1])
                             processed_inputs = ipt_split[1]
 
-                        c.interpretaion = ipt_split[0] + " : " + processed_inputs
+                        c.interpretation = ipt_split[0] + " : " + processed_inputs
                         c.response = opt
                     
                     else:
                         opt = "FAILURE:  OpenAI called for function '%s' that is not available"%(ipt_split[0])
-                        c.interpretaion = "Attempted to call a function" 
+                        c.interpretation = "Attempted to call a function" 
                         c.response = opt
 
 
                 else:
                     opt = 'Called to OpenAI'
 
-                    # if self.activeAnalysis is not None or self.activeGeometry is not None:
-                    #     ipt += '.  The following are default values that may be used if no other value is provided:  '
-                    #     if self.activeAnalysis is not None:
-                    #         ipt += ' toolName=%s   caseIndex=%d'%(self.activeAnalysis[0], self.activeAnalysis[1]+1)
-                    #     if self.activeGeometry is not None:
-                    #         ipt += '   geometryIndex=%d'%(self.activeGeometry+1)
+                    # ============================ Multi-tool loop (chained function calling) ============================
+                    # Strategy:
+                    # 1) Ask the model for the next function call.
+                    # 2) Execute it locally if available.
+                    # 3) Append a concise summary of the tool result back into the prompt so the model can decide the next step.
+                    # 4) Repeat until the model stops requesting tools or we hit a safety cap.
+                    #
+                    # Notes:
+                    # - We keep the API surface the same (sendToOpenAI(prompt, functionData)).
+                    # - We do not assume the wrapper supports a message array; instead we iteratively augment the prompt.
+                    # - Safety: max 8 iterations to avoid infinite loops.
+                    # ================================================================================================
+                    max_iters = 20
+                    iter_count = 0
+                    step_summaries = []
+                    opt = 'No task performed'
+                    augmented_prompt = ipt
 
-                    chat_completion = sendToOpenAI(ipt, functionData)
-                    # print(chat_completion)
-                    # print(len(print(chat_completion.output)))
-                    # print(chat_completion.output)
-                    # print('==============================')
-                    # print(chat_completion.output)
+                    while True:
+                        iter_count += 1
+                        if iter_count > max_iters:
+                            opt = f"Stopped after {max_iters} tool iterations to avoid an infinite loop."
+                            break
 
-                    # if chat_completion.choices[0].message.tool_calls is None:
-                    #     # OpenAI just did bad things, try again
-                    #     chat_completion = sendToOpenAI(ipt, functionData)
+                        chat_completion = sendToOpenAI(augmented_prompt, functionData)
 
-                    #     if chat_completion.choices[0].message.tool_calls is None:
-                    #         # try one more time
-                    #         chat_completion = sendToOpenAI(ipt, functionData)
+                        # Defensive checks in case the LLM chooses to respond normally (no tool call)
+                        if not hasattr(chat_completion, "output") or not chat_completion.output:
+                            # No tool call; treat any textual output as final response if present
+                            try:
+                                model_text = getattr(chat_completion, "text", None) or getattr(chat_completion, "output_text", None)
+                            except Exception:
+                                model_text = None
+                            opt = model_text if model_text else "No further actions requested."
+                            break
 
-                    #         # if this fails, there is probably an actual issue
-                    #         # I've never had something fail 3 times in a row
-                    # if self._print_calls:
-                    #     print(chat_completion)
+                        # Some wrappers return a list of possible tool calls. We handle the first one per iteration.
+                        try:
+                            tool_call = chat_completion.output[0]
+                            functionName = getattr(tool_call, "name", None)
+                            raw_args = getattr(tool_call, "arguments", "{}")
+                        except Exception:
+                            functionName = None
+                            raw_args = "{}"
 
-                    print(chat_completion.output)
-                    print(chat_completion.output[0].name)
-                    print(json.loads(chat_completion.output[0].arguments))
-                    # if chat_completion.choices[0].message.tool_calls[0].function.name == 'multi_tool_use':
-                    #     # not currently supported 
-                    #     if len(json.loads(chat_completion.choices[0].message.tool_calls[0].function.arguments)['tool_uses']) == 1:
-                    #         # returned a multi_tool_use, but only one function
-                    #         functionName = json.loads(chat_completion.choices[0].message.tool_calls[0].function.arguments)['tool_uses'][0]['recipient_name']
-                    #         functionName = functionName.replace('functions.','')
-                    #         if functionName in functionAllocationDict.keys():
-                    #             functionHandle = functionAllocationDict[functionName]
-                    #             inputs = json.loads(chat_completion.choices[0].message.tool_calls[0].function.arguments)['tool_uses'][0]['parameters']
-                    #             opt = functionHandle(**inputs)
-                    #         else:
-                    #             opt = "FAILURE:  OpenAI called for function '%s' that is not available"%(functionName)
-                    #     else:
-                    #         opt = 'FAILURE:  OpenAI attempted to create a workflow of multiple functions'
-                    # else:
+                        if not functionName:
+                            # Model decided to stop calling tools
+                            try:
+                                model_text = getattr(chat_completion, "text", None) or getattr(chat_completion, "output_text", None)
+                            except Exception:
+                                model_text = None
+                            opt = model_text if model_text else "No further actions requested."
+                            break
 
-                    # print(chat_completion.choices[0].message.tool_calls[0].function.name)
-                    # print(json.loads(chat_completion.choices[0].message.tool_calls[0].function.arguments))
+                        print("==================================================")
+                        print(f"Iteration Count: {iter_count}")
+                        print(f"chat_completion output: {chat_completion.output}")
+                        print(f"function name: {functionName}")
+                        print(f"arguments(raw): {raw_args}")
 
-                    functionName = chat_completion.output[0].name
-                    if functionName in functionAllocationDict.keys():
-                        functionHandle = functionAllocationDict[functionName]
-                        inputs = json.loads(chat_completion.output[0].arguments)
-                        # if functionName in ['plotAirfoilGeometry','run']:
-                        #     inputs['portNumber'] = portNumber
-                        
-                        # if functionName in ['callLLM','callRAG']:
-                        #     # use the exact input from the user (LLM can overwrite improperly)
-                        #     opt = functionHandle(ipt)
-                        #     # print("{'query (overwritten)': %s}"%(ipt))
-                        #     c.interpretaion = "Function handling chose to pass the query directly to the %s framework"%(functionName[-3:])
-                        #     c.response = opt
-                        # else:
-                        # if functionName in list(lapi.return_handle_map().keys()):
-                        inputs['uiManager']  = self
-                        inputs['portNumber'] = portNumber
-                        inputs['rawInput']   = ipt
+                        prompt = "generate a NACA2412 airfoil, make and xfoil case, and run it"
 
-                        opt = functionHandle(**inputs)
-                        c.interpretaion = functionName + " : " + str(json.loads(chat_completion.output[0].arguments))
-                        c.response = opt
+                        if functionName in functionAllocationDict.keys():
+                            functionHandle = functionAllocationDict[functionName]
 
-                    else:
-                        opt = "FAILURE:  OpenAI called for function '%s' that is not available"%(functionName)
-                        c.interpretaion = "Attempted to call a function" 
-                        c.response = opt
+                            # Parse tool arguments robustly
+                            try:
+                                inputs = json.loads(raw_args)
+                                if not isinstance(inputs, dict):
+                                    inputs = {}
+                            except Exception:
+                                inputs = {}
+
+                            # Standardize: for "run" requests, defer to ACTIVE selection only if not explicitly provided
+                            if functionName == 'run':
+                                # Preserve what the model provided for traceability
+                                inputs['_provided_geometryIndex'] = inputs.get('geometryIndex', None)
+                                inputs['_provided_caseIndex'] = inputs.get('caseIndex', None)
+
+                                # Geometry handling
+                                gi = inputs.get('geometryIndex', None)
+                                if gi in (None, 'None', '', '0', 0):
+                                    # Not explicitly provided or '0' (string or int) -> defer to active via 'None' and log resolution
+                                    inputs['geometryIndex'] = 'None'
+                                    inputs.setdefault('_resolvedBy', 'activeDefaults')
+                                    inputs['_resolved_geometryIndex_1b'] = (
+                                        str(self.activeGeometry + 1) if self.activeGeometry is not None else None
+                                    )
+                                else:
+                                    # Explicit geometry provided -> honor it
+                                    inputs['geometryIndex'] = str(gi)
+                                    inputs['_resolved_geometryIndex_1b'] = str(gi)
+                                    inputs['_resolvedBy'] = 'explicitGeometry'
+
+                                # Case handling
+                                ci = inputs.get('caseIndex', None)
+                                if ci in (None, 'None', '', '0', 0):
+                                    inputs['caseIndex'] = 'None'
+                                    # resolved case index (1-based) for logging if we know activeAnalysis
+                                    inputs['_resolved_caseIndex_1b'] = (
+                                        str(self.activeAnalysis[1] + 1) if (self.activeAnalysis is not None and len(self.activeAnalysis) > 1) else None
+                                    )
+                                    if '_resolvedBy' not in inputs:
+                                        inputs['_resolvedBy'] = 'activeDefaults'
+                                else:
+                                    inputs['caseIndex'] = str(ci)
+                                    inputs['_resolved_caseIndex_1b'] = str(ci)
+                                    # If geometry was explicit, keep explicit; otherwise mark explicitCase
+                                    if inputs.get('_resolvedBy') != 'explicitGeometry':
+                                        inputs['_resolvedBy'] = 'explicitCase'
+
+                            # Log the effective arguments that will actually be used to call the tool
+                            try:
+                                effective_args = {k: v for k, v in inputs.items() if k not in ('uiManager','portNumber','rawInput') and not str(k).startswith('_')}
+                                print(f"arguments(effective): {json.dumps(effective_args)}")
+                            except Exception as _e_print_effective:
+                                print(f"arguments(effective): <unavailable due to {type(_e_print_effective).__name__}: {_e_print_effective}>" )
+
+                            # Inject runtime context
+                            inputs['uiManager']  = self
+                            inputs['portNumber'] = portNumber
+                            inputs['rawInput']   = ipt
+
+                            # Execute the tool
+                            try:
+                                tool_result = functionHandle(**inputs)
+                            except Exception as e:
+                                tool_result = f"ERROR while executing {functionName}: {e!r}"
+
+                            # Record interpretation and tool result
+                            try:
+                                c.interpretation = f"{functionName} : {json.dumps(inputs)}"
+                            except Exception:
+                                c.interpretation = f"{functionName} : {str(inputs)}"
+
+                            c.response = tool_result
+                            opt = tool_result  # keep last tool result as the final opt if the model stops next
+
+                            # Build a concise summary to feed back into the next iteration
+                            def _summarize(val, max_len=600):
+                                try:
+                                    s = json.dumps(val, default=_json_default)
+                                except Exception:
+                                    s = str(val)
+                                if len(s) > max_len:
+                                    s = s[:max_len] + "...(truncated)"
+                                return s
+
+                            step_summary = f"[TOOL RESULT] {functionName}: " + _summarize(tool_result)
+                            step_summaries.append(step_summary)
+
+                            # Augment the prompt so the model can plan the next step.
+                            augmented_prompt = (
+                                ipt
+                                + "\n\n"
+                                + "\n".join(step_summaries)
+                                + "\n\nIf more tool calls are needed to complete the user's request, propose exactly one next function call now. "
+                                  "Otherwise, respond with plain text and no function call."
+                            )
+
+                            # Continue loop to allow the model to choose the next tool or stop.
+                            continue
+
+                        else:
+                            # Requested tool is not available; stop gracefully
+                            opt = f"FAILURE:  OpenAI called for function '{functionName}' that is not available"
+                            c.interpretation = "Attempted to call a function"
+                            c.response = opt
+                            break
+
+                    # Make sure we propagate a reasonable response string if nothing else set it
+                    if isinstance(opt, (dict, list, set, tuple, np.ndarray, Path)):
+                        try:
+                            opt = json.dumps(opt, default=_json_default)
+                        except Exception:
+                            opt = str(opt)
+                    # ================================================================================================
 
             elif callMode == 'RAG':
                 opt = self.callRAG(ipt, False)
-                c.interpretaion = "Passed the query directly to the RAG framework"
+                c.interpretation = "Passed the query directly to the RAG framework"
                 c.response = opt
                 c.callMode = 'RAG'
 
             elif callMode == 'RAG-C':
                 opt = self.callRAG(ipt, True)
-                c.interpretaion = "Passed the query directly to the RAG framework and requested citations"
+                c.interpretation = "Passed the query directly to the RAG framework and requested citations"
                 c.response = opt
                 c.callMode = 'RAG-C'
 
             elif callMode == 'LLM':
                 opt = self.callLLM(ipt)
-                c.interpretaion = "Passed the query directly to LLM"
+                c.interpretation = "Passed the query directly to LLM"
                 c.response = opt
                 c.callMode = 'LLM'
 
@@ -887,11 +1088,17 @@ class UIHandler(object):
 
             self.calls.append(c)
 
-            callString = json.dumps(c.__dict__, indent = 4)
+            # Safely JSON-serialize the call object, even if response contains non-serializable objects
+            call_payload = dict(c.__dict__)
+            try:
+                callString = json.dumps(call_payload, indent=4, default=_json_default)
+            except TypeError:
+                # As an extra guard, coerce the response only, then dump again
+                call_payload["response"] = _json_default(call_payload.get("response"))
+                callString = json.dumps(call_payload, indent=4, default=_json_default)
 
-            f = open(os.path.join(self.sessionDirectory,  'Call_%d'%(len(self.calls)), 'call_log.json'),'w')
-            f.write(callString)
-            f.close()
+            with open(os.path.join(self.sessionDirectory, 'Call_%d' % (len(self.calls)), 'call_log.json'), 'w') as f:
+                f.write(callString)
 
 
     def callLLM(self,query):
