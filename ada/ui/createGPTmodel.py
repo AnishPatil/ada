@@ -2,7 +2,7 @@ import datetime
 from openai import OpenAI
 import time
 import json
-import pathlib
+https://developers.openai.com/codex/config-basicimport pathlib
 import os
 path_to_here = pathlib.Path(__file__).parent.resolve()
 

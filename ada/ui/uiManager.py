@@ -22,7 +22,11 @@ from ada.analysis.saveLoadAnalysisCase import saveAnalysisCase, loadAnalysisCase
 from ada.analysis.apis import currentToolList
 from ada.ui.api import API as baseAPI
 from ada.analysis.apis.xfoil.api_ui import API_UI as xfoilAPI
-import natsort
+try:
+    import natsort
+    natsort_present = True
+except:
+    natsort_present = False
 
 
 # --- Helper for safe JSON serialization ---
@@ -715,10 +719,13 @@ class UIHandler(object):
     def generateFiletreeHTML(self):
 
         combined = os.listdir(self.workingDirectory)
-        # files   = list(sorted([f for f in combined if os.path.isfile(self.workingDirectory + os.sep + f)]))
-        # folders = list(sorted([f for f in combined if not os.path.isfile(self.workingDirectory + os.sep + f)]))
-        files   = natsort.natsorted([f for f in combined if os.path.isfile(self.workingDirectory + os.sep + f)], alg=natsort.ns.IGNORECASE)
-        folders = natsort.natsorted([f for f in combined if not os.path.isfile(self.workingDirectory + os.sep + f)], alg=natsort.ns.IGNORECASE)
+   
+        if natsort_present:
+            files   = natsort.natsorted([f for f in combined if os.path.isfile(self.workingDirectory + os.sep + f)], alg=natsort.ns.IGNORECASE)
+            folders = natsort.natsorted([f for f in combined if not os.path.isfile(self.workingDirectory + os.sep + f)], alg=natsort.ns.IGNORECASE)
+        else:
+            files = list(sorted([f for f in combined if os.path.isfile(self.workingDirectory + os.sep + f)]))
+            folders = list(sorted([f for f in combined if not os.path.isfile(self.workingDirectory + os.sep + f)]))
 
         pstr = ''
 
@@ -872,7 +879,8 @@ class UIHandler(object):
                             opt = functionAllocationDict[ipt_split[0]]()
                             processed_inputs = ''
                         else:
-                            opt = functionAllocationDict[ipt_split[0]](ipt_split[1])
+                            print(ipt_split[1:])
+                            opt = functionAllocationDict[ipt_split[0]](self, ipt_split[1])
                             processed_inputs = ipt_split[1]
 
                         c.interpretation = ipt_split[0] + " : " + processed_inputs
@@ -911,23 +919,28 @@ class UIHandler(object):
                             opt = f"Stopped after {max_iters} tool iterations to avoid an infinite loop."
                             break
 
-                        chat_completion = sendToOpenAI(augmented_prompt, functionData)
+                        responses_result = sendToOpenAI(augmented_prompt, functionData)
 
                         # Defensive checks in case the LLM chooses to respond normally (no tool call)
-                        if not hasattr(chat_completion, "output") or not chat_completion.output:
+                        if not hasattr(responses_result, "output") or not responses_result.output:
                             # No tool call; treat any textual output as final response if present
                             try:
-                                model_text = getattr(chat_completion, "text", None) or getattr(chat_completion, "output_text", None)
+                                model_text = getattr(responses_result, "text", None) or getattr(responses_result, "output_text", None)
                             except Exception:
                                 model_text = None
                             opt = model_text if model_text else "No further actions requested."
                             break
 
-                        # Some wrappers return a list of possible tool calls. We handle the first one per iteration.
+                        # Responses API may include messages/reasoning before function calls; find the first function_call item.
+                        functionName = None
+                        raw_args = "{}"
                         try:
-                            tool_call = chat_completion.output[0]
-                            functionName = getattr(tool_call, "name", None)
-                            raw_args = getattr(tool_call, "arguments", "{}")
+                            for out_item in responses_result.output:
+                                item_type = getattr(out_item, "type", None)
+                                if item_type == "function_call":
+                                    functionName = getattr(out_item, "name", None)
+                                    raw_args = getattr(out_item, "arguments", "{}")
+                                    break
                         except Exception:
                             functionName = None
                             raw_args = "{}"
@@ -935,7 +948,7 @@ class UIHandler(object):
                         if not functionName:
                             # Model decided to stop calling tools
                             try:
-                                model_text = getattr(chat_completion, "text", None) or getattr(chat_completion, "output_text", None)
+                                model_text = getattr(responses_result, "text", None) or getattr(responses_result, "output_text", None)
                             except Exception:
                                 model_text = None
                             opt = model_text if model_text else "No further actions requested."
@@ -943,7 +956,7 @@ class UIHandler(object):
 
                         print("==================================================")
                         print(f"Iteration Count: {iter_count}")
-                        print(f"chat_completion output: {chat_completion.output}")
+                        print(f"responses_result output: {responses_result.output}")
                         print(f"function name: {functionName}")
                         print(f"arguments(raw): {raw_args}")
 
@@ -1108,5 +1121,4 @@ class UIHandler(object):
     def callRAG(self,query,citeSources):
         resp = callRAG(self, query,citeSources)
         return resp
-
 

@@ -1,11 +1,8 @@
-import os
-from openai import OpenAI
+from ada.ui.llm_runtime import build_client_and_model
 
-def callLLM(uiManager, ipt, model="gpt-5"):
-    client = OpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY"),
-        organization=os.environ.get("OPENAI_ORG"),
-    )
+
+def callLLM(uiManager, ipt, model=None):
+    client, model = build_client_and_model(model)
 
     full_resp = client.responses.create(model = model, input = ipt)
     resp = full_resp.output_text
