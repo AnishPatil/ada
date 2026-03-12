@@ -19,7 +19,19 @@ shutil.copytree(os.path.join('ada','ui','UI_Files'), ada_hidden_dir)
 
 from sys import platform
 if platform == "linux" or platform == "linux2":
-    raise ValueError('Linux not currently supported')
+    #raise ValueError('Linux not currently supported')
+    f = open(str(home_dir) + '/.bash_profile', 'r')
+    zshenvStr = f.read()
+    f.close()
+    if 'export PATH_TO_ADA' not in zshenvStr:
+        f = open(str(home_dir) + '/.bash_profile', 'a')
+        f.write('\n')
+        f.write('# Adding path to ADA\n')
+        f.write('export PATH_TO_ADA="%s"\n'%(str(pathlib.Path(__file__).parent.resolve()) + os.sep))
+        f.close()
+
+    subprocess.call(['chmod 777 buildESP.sh'], shell=True)
+    subprocess.call(['source buildESP.sh'], shell=True)
 elif platform == "darwin":
     f = open(str(home_dir) + '/.zshenv', 'r')
     zshenvStr = f.read()
@@ -52,7 +64,7 @@ setup(
     author="Cody Karcher",
     author_email="cody.karcher@gmail.com",
     url="https://github.com/codykarcher",
-    install_requires= ['numpy','scipy','pandas','openai','llama-index','matplotlib','pint','pypdf', 'natsort','PyICU','mpi4py'] , #["numpy", "scipy", "pandas", "matplotlib", "jsmin", "scikit-learn", "dill","cvxopt"],
+    install_requires= ['numpy','scipy','pandas','openai','llama-index','matplotlib','pint','pypdf','mpi4py'] , #["numpy", "scipy", "pandas", "matplotlib", "jsmin", "scikit-learn", "dill","cvxopt"],
     version="0.0.0",
     packages=find_packages(),
     license=LICENSE,

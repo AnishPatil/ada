@@ -18,8 +18,13 @@ from pathlib import Path
 from multiprocessing import Process
 import subprocess
 import json
+import platform
+import shutil
+import time
+import webbrowser
 import ada
 from ada.ui.uiManager import UIHandler
+from ada.ui.llm_runtime import is_wsl, resolve_runtime_info
 
 home_dir = Path.home()
 
@@ -74,8 +79,21 @@ def run(server_class=HTTPServer, handler_class=S, addr="localhost", port=8000):
     httpd.serve_forever()
 
 def openBrowser(port=8000):
-    sleepTime = 0.25
-    subprocess.run(['sleep '+str(sleepTime)+' && open http:/:'+str(port)+'/.ada/index.html -a Safari'],shell=True)
+    time.sleep(0.25)
+    url = f"http://localhost:{port}/.ada/index.html"
+
+    if platform.system() == "Darwin":
+        subprocess.run(["open", url], check=False)
+        return
+
+    if is_wsl():
+        if shutil.which("wslview"):
+            subprocess.run(["wslview", url], check=False)
+        else:
+            subprocess.run(["powershell.exe", "-NoProfile", "-Command", f"Start-Process '{url}'"], check=False)
+        return
+
+    webbrowser.open(url, new=2)
 
 if __name__ == "__main__":
     # try:
@@ -94,6 +112,14 @@ if __name__ == "__main__":
         help="Specify the port on which the server listens",
     )
     args = parser.parse_args()
+    llm_info = resolve_runtime_info()
+    print(f"Runtime platform: {llm_info['platform']}")
+    print(f"LLM provider: {llm_info['provider']}")
+    if llm_info.get("base_url"):
+        print(f"LLM base URL: {llm_info['base_url']}")
+    if llm_info.get("model"):
+        print(f"LLM model override: {llm_info['model']}")
+
     # run(addr=args.listen, port=args.port)
     t1 = Process(target=run, kwargs={"addr":args.listen, "port":args.port})
     t1.start()
