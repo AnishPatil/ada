@@ -2,11 +2,11 @@
 <html>
 <head>
     <!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> -->
-    <link href="index.css" rel="stylesheet">
-    <script src="three.module.js" type="module"></script>
-    <script src="OrbitControls.js" type="module"></script>
-    <script src="geometryWindowHandler.js" type="module"></script>
-    <script src="index.js" type="module"></script>
+    <link href="index.css?v=20260413b" rel="stylesheet">
+    <script src="three.module.js?v=20260413b" type="module"></script>
+    <script src="OrbitControls.js?v=20260413b" type="module"></script>
+    <script src="geometryWindowHandler.js?v=20260413b" type="module"></script>
+    <script src="index.js?v=20260413b" type="module"></script>
 </head>
 
 <body style="margin: 0px;">
@@ -39,7 +39,26 @@
                     </div>
                 </div>
                 <div class="footer">
+                    <div class="settings-panel hidden" id="llm-settings-panel" hidden>
+                        <div class="settings-row">
+                            <label class="settings-label" for="llm-provider-dropdown">AI backend</label>
+                            <select class="settings-input" id="llm-provider-dropdown">
+                                <option value="auto">Auto detect</option>
+                                <option value="openai">OpenAI cloud</option>
+                                <option value="local">Local / OpenAI-compatible</option>
+                            </select>
+                            <label class="settings-label" for="llm-model-input">Model</label>
+                            <input class="settings-input" type="text" id="llm-model-input" placeholder="Optional model override">
+                        </div>
+                        <div class="settings-row">
+                            <label class="settings-label" for="llm-base-url-input">Base URL</label>
+                            <input class="settings-input settings-input-wide" type="text" id="llm-base-url-input" placeholder="Optional local endpoint, e.g. http://127.0.0.1:11434/v1">
+                            <button class="settings-save-button query-box-font" id="save-llm-settings-button" type="button">Save</button>
+                        </div>
+                        <div class="settings-status small-font-index" id="llm-settings-status"></div>
+                    </div>
                     <div class="query-box">
+                        <button class="settings-toggle-button query-box-font" id="toggle-llm-settings-button" type="button">LLM Settings</button>
                         <select class="mode-selector query-box-font" id="mode-selector-dropdown" style="background-color: #0065cc;">
                             <option value="Functions">Functions</option>
                             <option value="RAG">RAG</option>

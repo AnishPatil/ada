@@ -1,10 +1,14 @@
 from ada.ui.llm_runtime import build_client_and_model
+import time
 
 
 def callLLM(uiManager, ipt, model=None):
     client, model = build_client_and_model(model)
 
+    start_time = time.perf_counter()
     full_resp = client.responses.create(model = model, input = ipt)
+    elapsed_s = time.perf_counter() - start_time
+    print(f"[LLM timing] Total response time: {elapsed_s:.2f} seconds")
     resp = full_resp.output_text
 
     resp = resp.replace('\n', '<br>\n')

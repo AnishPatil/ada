@@ -1,0 +1,6 @@
+{
+    "query": "make the upper surface more cambered",
+    "interpretation": "increaseCamber : {'factor': '1.1', 'location': '0.4', 'uiManager': <ada.ui.uiManager.UIHandler object at 0x13c0b28e0>, 'portNumber': 8000, 'rawInput': 'make the upper surface more cambered'}",
+    "response": null,
+    "callMode": "Functions"
+}

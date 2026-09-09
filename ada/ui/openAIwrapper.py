@@ -1,4 +1,5 @@
 import pathlib
+import json
 from ada.ui.llm_runtime import build_client_and_model
 path_to_here = pathlib.Path(__file__).parent.resolve()
 
@@ -12,9 +13,10 @@ def sendToOpenAI(ipt, functionData = None, model=None):
     if functionData is None:
         raise ValueError('Did not recieve any function data')
 
+    with open(path_to_here / "functionDataTest.json", "w") as f:
+        json.dump(functionData, f, indent=4)
 
     tools = [{"type":"function"} | v for v in functionData]
-
     response = client.responses.create(
         model=model,
         # instructions="Always output your response by using a tool.  Do not respond to the user or ask a question under any circumstances.",

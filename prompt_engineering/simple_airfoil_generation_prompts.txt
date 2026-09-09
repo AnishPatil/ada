@@ -1,0 +1,350 @@
+make something wing shaped
+give me a wing thing
+start with a shape for a wing
+make a profile for me
+make the shape first
+can you make the wing part
+i need the air shape
+give me the foil part
+make one of those airfoil things
+set up the shape
+start the geometry
+make a new geometry
+give me a base shape
+make the first shape
+can you give me a section
+i need a section shape
+make the cross section
+give me a wing cross section
+start with an airfoil maybe
+make some aero shape
+make an aero profile
+give me a profile to work with
+make something to test
+set up something to analyze
+make a starter shape
+give me the wing outline
+make a wing profile or something
+start an airfoil i guess
+make a fresh shape
+create the geometry part
+give me a geometry to use
+make a foil
+generate a foil shape
+can you make some foil geometry
+start a foil for me
+make a section i can use
+give me an airplane section
+make a basic section
+make a shape for airflow
+create something aerodynamic
+make a simple wing shape
+start with something simple
+give me something airfoil-like
+make whatever shape works
+just make an airfoil
+make any airfoil
+generate any airfoil
+create whatever airfoil
+pick an airfoil and make it
+set me up with an airfoil
+give me one to start from
+make a default airfoil
+make a normal airfoil
+give me a standard wing profile
+start me off with a profile
+make one of the usual ones
+put together a wing section
+make the shape we need
+create the wing geometry
+make some geometry for this
+give me the aero geometry
+start a geometry object
+make a new section for me
+give me a fresh profile
+create a usable airfoil
+make me something to run later
+start with the airfoil part
+just set up the foil
+make the front-end shape
+build me a section
+create some kind of section
+can you start the design shape
+make a 2d wing shape
+give me a 2d section
+make an aero section
+start with a wing section
+make the baseline shape
+give me an initial shape
+create an initial profile
+make the first airfoil
+generate the first geometry
+make the thing xfoil would use
+make the wing profile thing
+create that profile shape
+give me a foil profile
+make a shape from the library maybe
+make something from the database
+pick a shape and load it
+load some airfoil for me
+grab an airfoil to start
+make some airfoil geometry please
+can we start with a wing profile
+i just need a profile
+set up a foil section
+make a little airfoil shape
+give me something wing-like
+create a test shape
+make a placeholder airfoil
+start with any reasonable shape
+make a default wing section
+set up an initial airfoil
+give me some starting geometry
+make some sort of wing profile
+can you put together a profile
+let's begin with the shape
+start with whatever section makes sense
+load me some kind of airfoil
+find a profile and use that
+pick something wing-ish
+get me a section to start on
+make a starter airfoil or whatever
+build the geometry we need
+make a profile i can mess with
+set up a section to work on
+give me a profile shape thing
+make a little wing section
+start an aerodynamic shape
+make me a wing section thing
+can you give me some geometry
+just start the profile
+set up a base section
+make a simple starting profile
+put a shape in there
+make the geometry object
+start the foil geometry
+give me a first-pass shape
+load a starter profile
+pick something common and use it
+start with a common wing profile
+make any reasonable airfoil
+just give me something aerodynamic
+make one of the normal profiles
+can you create a baseline foil
+set up a baseline airfoil
+make a test airfoil
+load a test airfoil
+create something to begin with
+give me a geometry baseline
+start from a generic shape
+make a generic wing section
+give me a generic airfoil
+make some wing geometry
+set up some wing geometry
+create a section profile
+start a section profile
+make a clean starting shape
+can you give me a clean profile
+make a shape from the airfoil list
+pick one from the airfoil files
+grab a standard profile
+make a placeholder profile
+can you set up the airfoil geometry
+please start a shape
+please give me a profile
+please make some geometry
+please make a foil section
+please give me a wing section
+i need a starting profile
+i need some airfoil geometry
+i need a basic wing section
+i need something to start with
+give me a wing profile to use
+give me a section to work from
+give me some foil geometry
+give me a default profile
+make me a default profile
+make me some geometry
+make me a section shape
+create me a starting airfoil
+create me some geometry
+generate me a usable profile
+generate some starting geometry
+start me with a section
+start me with an airfoil
+start me with some geometry
+open a section for me
+open an airfoil for me
+open some geometry
+set up the wing profile
+set up the airfoil geometry
+set up a starter section
+put together a basic airfoil
+put together a simple profile
+build a basic airfoil
+build a simple section
+build a starting profile
+find me a wing profile
+find me an airfoil
+find some profile geometry
+pull in a wing section
+pull in some airfoil geometry
+use some default geometry
+use a standard profile
+use a normal section
+pick a section for me
+pick a baseline profile
+pick any foil
+pick any section
+make whatever section is easiest
+start with whatever airfoil is handy
+give me whatever profile works
+load whatever section makes sense
+can you just make a section
+can you just make a profile
+can you just make the airfoil
+can you just load one
+help me start a profile
+help me start the geometry
+help me get an airfoil in there
+help me set up a section
+let's start with a foil
+let's start with a section
+let's start with some geometry
+let's use a wing profile
+we should probably start with a shape
+we need a profile first
+we need some geometry first
+we should get an airfoil going
+make a section from the collection
+make a profile from the library
+load something from the library
+use something from the database
+use a shape from the files
+bring in a starter airfoil
+bring in some starting geometry
+make an initial foil shape
+make a beginning airfoil
+make a first draft profile
+give me a first draft section
+set up a first draft airfoil
+can you create a draft profile
+make an editable airfoil
+give me an editable section
+create an editable profile
+make a working airfoil
+set up a working profile
+give me a working section
+start a basic foil
+start a basic profile
+start a basic section
+create a plain airfoil
+create a plain profile
+create a plain section
+make an ordinary wing profile
+give me an ordinary airfoil
+use an ordinary section
+put in a starter foil
+put in a profile to use
+put in some initial geometry
+make a quick airfoil
+make a quick profile
+make a quick section
+can you give me a quick airfoil
+start with a quick profile
+load a quick starter shape
+make some geometry to begin
+get the section started
+get the profile started
+get the airfoil started
+can you get a profile going
+can you get an airfoil going
+let me start from a wing section
+let me start from some geometry
+start from a normal profile
+start from a regular airfoil
+use a regular wing section
+make a usable section shape
+make a usable wing profile
+set up a usable geometry
+create something i can run later
+create something i can modify
+give me something i can edit
+make a section i can edit
+start with a shape i can change
+make an airfoil to work off of
+give me an airfoil to work off of
+make a profile to build on
+give me a profile to build on
+use a section as a starting point
+make a starting-point airfoil
+create a starting-point profile
+give me a starting-point section
+make some wing-ish geometry
+give me some airfoil-ish geometry
+create something section-like
+make the kind of profile we usually use
+give me the kind of section we'd start from
+set up the kind of airfoil we'd begin with
+make a default-looking airfoil
+make a pretty normal profile
+give me a pretty normal section
+create a not-too-weird airfoil
+make a plain starting geometry
+set up a plain starting geometry
+give me a simple starting airfoil
+create a simple starting section
+make a no-frills profile
+use a no-frills section
+start with a basic foil shape
+give me a mild-looking airfoil
+make a standard-looking profile
+set up a standard-looking section
+start with whatever is in the airfoil library
+use whatever airfoil is easiest to load
+bring up some default foil geometry
+create some default section geometry
+make some starter foil geometry
+put together some starter wing geometry
+give me a shape to begin the study
+make the airfoil for the study
+set up the starting airfoil for this
+use an airfoil as the starting shape
+create a profile for this run later
+make a wing section for this case later
+start a shape for the analysis later
+make a small section profile
+load a small airfoil maybe
+give me a starter wing cross section
+build a simple wing cross section
+create a cross section to begin from
+start with a cross section we can use
+set up the section geometry first
+make the profile geometry first
+make the foil geometry first
+load the initial section first
+create the initial airfoil first
+get some section geometry in place
+make a working starting shape
+give me a working starting section
+set up a profile we can iterate on
+make a section we can iterate on
+use an airfoil we can iterate on
+pick a profile we can change later
+give me an easy starter airfoil
+make an easy starter section
+create an easy starter profile
+set up an easy starter airfoil
+load a simple starter profile
+give me a straightforward wing section
+make a straightforward airfoil
+create a straightforward profile
+start with a regular foil shape
+put together a basic working section
+make a starter geometry set
+give me a usable default airfoil
+create a reasonable first profile
+set up a reasonable first section
+make a simple airfoil to begin from
+load a basic section to start from
+start a default profile for me

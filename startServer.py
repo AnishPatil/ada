@@ -14,6 +14,7 @@ Send a POST request:
 import argparse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
+from urllib.parse import urlparse
 
 from multiprocessing import Process
 import subprocess
@@ -25,12 +26,28 @@ import webbrowser
 import ada
 from ada.ui.uiManager import UIHandler
 from ada.ui.llm_runtime import is_wsl, resolve_runtime_info
+from ada.ui.runtime_preferences import load_llm_config, save_llm_config
 
 home_dir = Path.home()
+ui_source_dir = Path(ada.ada_path) / "ui" / "UI_Files"
 
 DIRECTORY=home_dir
 
 handler = UIHandler(print_calls=True)
+
+
+def sync_ui_assets():
+    target_dir = home_dir / ".ada"
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    for source_path in ui_source_dir.iterdir():
+        destination_path = target_dir / source_path.name
+        if source_path.is_dir():
+            if destination_path.exists():
+                shutil.rmtree(destination_path)
+            shutil.copytree(source_path, destination_path)
+        else:
+            shutil.copy2(source_path, destination_path)
 
 class S(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -42,6 +59,21 @@ class S(SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self):
+        parsed_path = urlparse(self.path)
+        if parsed_path.path == "/api/llm-config":
+            self._set_headers()
+            content_length = int(self.headers.get('Content-Length', 0))
+            content = self.rfile.read(content_length)
+            contentDict = json.loads(content.decode('utf8')) if content else {}
+            saved = save_llm_config(contentDict)
+            info = resolve_runtime_info()
+            message = {
+                "config": saved,
+                "runtime": info,
+            }
+            self.wfile.write(json.dumps(message).encode('utf-8'))
+            return
+
         self._set_headers()
         content_length = int(self.headers['Content-Length'])
         content = self.rfile.read(content_length)
@@ -70,6 +102,19 @@ class S(SimpleHTTPRequestHandler):
         jsn = json.dumps(message)
         self.wfile.write(jsn.encode('utf-8'))
 
+    def do_GET(self):
+        parsed_path = urlparse(self.path)
+        if parsed_path.path == "/api/llm-config":
+            self._set_headers()
+            message = {
+                "config": load_llm_config(),
+                "runtime": resolve_runtime_info(),
+            }
+            self.wfile.write(json.dumps(message).encode('utf-8'))
+            return
+
+        super().do_GET()
+
 
 def run(server_class=HTTPServer, handler_class=S, addr="localhost", port=8000):
     server_address = (addr, port)
@@ -97,6 +142,7 @@ def openBrowser(port=8000):
 
 if __name__ == "__main__":
     # try:
+    sync_ui_assets()
     parser = argparse.ArgumentParser(description="Run a simple HTTP server")
     parser.add_argument(
         "-l",

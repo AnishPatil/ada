@@ -1,0 +1,553 @@
+[
+    {
+        "name": "generateAirfoil",
+        "description": "Generates a 2D Airfoil",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "aflString": {
+                    "type": "string",
+                    "description": "The name of an airfoil.  Examples include: NACA2412, S814, and LA5055"
+                }
+            },
+            "required": [
+                "aflString"
+            ]
+        }
+    },
+    {
+        "name": "modifyGeometry",
+        "description": "Modifies a geometry parameter",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "surface": {
+                    "type": "string",
+                    "enum": [
+                        "upper",
+                        "lower"
+                    ],
+                    "description": "Selects between the upper and lower surface parameterizations.  Letter 'l' can also be used to indicate the lower surface, and letter 'u' can also indicate the upper surface."
+                },
+                "index": {
+                    "type": "string",
+                    "description": "The index (an integer) that corresonds to the value being changed.  This may be coupled with the letter K, as in K[1] or K_1 to indicate the desired index."
+                },
+                "value": {
+                    "type": "string",
+                    "description": "The value of the parameter that is being modified.  This will be a single float number."
+                },
+                "geometryIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the geometry being used in the function.  If no geometryNumber can be unambiguously determined, then return the string 'None'"
+                }
+            },
+            "required": [
+                "surface",
+                "index",
+                "value",
+                "geometryIndex"
+            ]
+        }
+    },
+    {
+        "name": "increaseCamber",
+        "description": "increased the airfoil camber",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "factor": {
+                    "type": "string",
+                    "description": "This is a multiplicative scale parameter that is applied to the Kulfan coefficients that define the airfoil Present implementation can be to use this factor to change both upper and lower surfaces of the airfoil to change its camber. A value or 1 makes no change, less than 1 decreases camber and greater than 1 increases it"
+                },
+                "location": {
+                    "type": "string",
+                    "description": "the location in fraction of chord (from 0 to 1) where the camber change will take effect. 0 is the leading edge and 1 is the trailing edge."
+                }
+            },
+            "required": [
+                "factor",
+                "location"
+            ]
+        }
+    },
+    {
+        "name": "changeActiveGeometry",
+        "description": "Changes the currently active geometry",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "activeGeometryIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the new active geometry"
+                }
+            },
+            "required": [
+                "activeGeometryIndex"
+            ]
+        }
+    },
+    {
+        "name": "changeActiveAnalysis",
+        "description": "Changes the currently active analysis",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "activeAnalysisTool": {
+                    "type": "string",
+                    "enum": [
+                        "xfoil"
+                    ],
+                    "description": "The name of the new active analysis tool.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "activeAnalysisIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the new active analysis case.  Do not call this function if activeAnalysisIndex cannot be determined unambiguously."
+                }
+            },
+            "required": [
+                "activeAnalysisTool",
+                "activeAnalysisIndex"
+            ]
+        }
+    },
+    {
+        "name": "copyGeometry",
+        "description": "Copies a geometry object",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "geometryIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the geometry to copy.  If cannot determine unambiguously, return the string 'None'."
+                }
+            },
+            "required": [
+                "geometryIndex"
+            ]
+        }
+    },
+    {
+        "name": "run",
+        "description": "Runs an analysis.  This function is often called using only the word \"run\" or \"run [analysis]\" where [analysis] is the name of an analysis tool contained in the toolName enumerated list",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "toolName": {
+                    "type": "string",
+                    "enum": [
+                        "xfoil"
+                    ],
+                    "description": "The name of the type of analysis case that is being copied.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "caseIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) analysis case to copy.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "geometryIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the geometry to copy.  If cannot determine unambiguously, return the string 'None'."
+                }
+            },
+            "required": [
+                "toolName",
+                "caseIndex",
+                "geometryIndex"
+            ]
+        }
+    },
+    {
+        "name": "selectData",
+        "description": "Selects a specific list of data indicies",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "dataIndicies": {
+                    "type": "string",
+                    "description": "A square bracket bounded list of integers (ex: [1,2,3,4,5]) that is the list of indicies to be selected.  If cannot determine unambiguously, return the string 'None'."
+                }
+            },
+            "required": [
+                "dataIndicies"
+            ]
+        }
+    },
+    {
+        "name": "deselectData",
+        "description": "Deselects a specific list of data indicies",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "dataIndicies": {
+                    "type": "string",
+                    "description": "A square bracket bounded list of integers (ex: [1,2,3,4,5]) that is the list of indicies to be deselected.  If cannot determine unambiguously, return the string 'None'."
+                }
+            },
+            "required": [
+                "dataIndicies"
+            ]
+        }
+    },
+    {
+        "name": "clearDataSelection",
+        "description": "Clears all of the active data selections",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "name": "analysis_apis_xfoil_boundaryLayerPlot",
+        "description": "Plots the boundary layer parameters of a 2D airfoil",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "toolName": {
+                    "type": "string",
+                    "enum": [
+                        "xfoil"
+                    ],
+                    "description": "The analysis tool being run.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "caseIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the case being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "geometryIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the geometry being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "dataIndicies": {
+                    "type": "string",
+                    "description": "A square bracket bounded list of integers (ex: [1,2,3,4,5]) that is the list of indicies to be used by the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "parameter": {
+                    "type": "string",
+                    "enum": [
+                        "none",
+                        "None",
+                        "cp",
+                        "pressure_coefficient",
+                        "coefficient_of_pressure",
+                        "pressure",
+                        "ue/vinf",
+                        "normalized_velocity",
+                        "velocity",
+                        "edge_velocity",
+                        "u_edge",
+                        "ue_over_vinf",
+                        "ue_over_vinfinity",
+                        "freestream_normalized_velocity",
+                        "dstar",
+                        "deltastar",
+                        "delta_star",
+                        "displacement_thickness",
+                        "theta",
+                        "momentum_thickness",
+                        "tstar",
+                        "theta_star",
+                        "kinetic_energy_thickness",
+                        "kinetic_thickness",
+                        "h*",
+                        "kinetic_energy_shape_parameter",
+                        "kinetic_shape_parameter",
+                        "h_star",
+                        "hstar",
+                        "thetaStar_over_theta",
+                        "h",
+                        "shape_parameter",
+                        "dstar_over_theta",
+                        "delta_over_theta",
+                        "deltastar_over_theta",
+                        "m",
+                        "mass_defect",
+                        "p",
+                        "momentum_defect",
+                        "k",
+                        "kinetic_defect",
+                        "kinetic_energy_defect",
+                        "cf",
+                        "skin_friction",
+                        "skin_friction_coefficient",
+                        "friction_coefficient",
+                        "tau_w",
+                        "wall_shear_stress",
+                        "wall_stress",
+                        "shear_stress",
+                        "wall_shear"
+                    ],
+                    "description": "The boundary layer parameter to be plotted.  If cannot determine unambiguously, return the string 'None'."
+                }
+            },
+            "required": [
+                "toolName",
+                "dataIndicies",
+                "parameter"
+            ]
+        }
+    },
+    {
+        "name": "analysis_apis_xfoil_forcePlot",
+        "description": "Plots forces acting on a 2D airfoil",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "toolName": {
+                    "type": "string",
+                    "enum": [
+                        "xfoil"
+                    ],
+                    "description": "The analysis tool being run.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "caseIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the case being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "geometryIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the geometry being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "dataIndicies": {
+                    "type": "string",
+                    "description": "A square bracket bounded list of integers (ex: [1,2,3,4,5]) that is the list of indicies to be used by the function.  If cannot determine unambiguously, return the string 'None'."
+                }
+            },
+            "required": [
+                "toolName",
+                "dataIndicies"
+            ]
+        }
+    },
+    {
+        "name": "analysis_apis_xfoil_polarPlot",
+        "description": "Plots the polar for a 2D airfoil",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "toolName": {
+                    "type": "string",
+                    "enum": [
+                        "xfoil"
+                    ],
+                    "description": "The analysis tool being run.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "caseIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the case being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "geometryIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the geometry being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "dataIndicies": {
+                    "type": "string",
+                    "description": "A square bracket bounded list of integers (ex: [1,2,3,4,5]) that is the list of indicies to be used by the function.  If cannot determine unambiguously, return the string 'None'."
+                }
+            },
+            "required": [
+                "toolName",
+                "dataIndicies"
+            ]
+        }
+    },
+    {
+        "name": "analysis_apis_xfoil_sweepPlot",
+        "description": "Plots a sweep for a 2D airfoil",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "toolName": {
+                    "type": "string",
+                    "enum": [
+                        "xfoil"
+                    ],
+                    "description": "The analysis tool being run.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "caseIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the case being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "geometryIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the geometry being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                }
+            },
+            "required": [
+                "toolName",
+                "caseIndex",
+                "geometryIndex"
+            ]
+        }
+    },
+    {
+        "name": "analysis_apis_xfoil_standardPlot",
+        "description": "Creates the standard plot expected by most XFOIL users",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "toolName": {
+                    "type": "string",
+                    "enum": [
+                        "xfoil"
+                    ],
+                    "description": "The analysis tool being run.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "caseIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the case being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "geometryIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the geometry being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "dataIndicies": {
+                    "type": "string",
+                    "description": "A square bracket bounded list of integers (ex: [1,2,3,4,5]) that is the list of indicies to be used by the function.  If cannot determine unambiguously, return the string 'None'."
+                }
+            },
+            "required": [
+                "toolName",
+                "dataIndicies"
+            ]
+        }
+    },
+    {
+        "name": "analysis_apis_xfoil_modifyAnalysisCase",
+        "description": "Modifies the parameters of the current analysis case.  Inputs that are a string in the enumerated list followed by a parseable value seperated by a whitespace are likely to be an attempt to call this function.  Ex: alfa 10.  Ex: alpha (-10,10,21).  Ex: n_panels 200.  Ex: reynolds number [1e6,1e7,1e8]",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "toolName": {
+                    "type": "string",
+                    "enum": [
+                        "xfoil"
+                    ],
+                    "description": "The analysis tool being run.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "caseIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the case being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "geometryIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the geometry being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "parameter": {
+                    "type": "string",
+                    "enum": [
+                        "alpha",
+                        "angleofattack",
+                        "alfa",
+                        "a",
+                        "liftcoefficient",
+                        "coefficientoflift",
+                        "cl",
+                        "mach",
+                        "machnumber",
+                        "m",
+                        "n",
+                        "ncrit",
+                        "ncritical",
+                        "amplification",
+                        "amplificationfactor",
+                        "acrit",
+                        "acritical",
+                        "n_crit",
+                        "npanels",
+                        "numberofpanels",
+                        "npane",
+                        "npan",
+                        "np",
+                        "panelcount",
+                        "panelnumber",
+                        "n_panels",
+                        "re",
+                        "r",
+                        "reynolds number",
+                        "reynolds",
+                        "xtrl",
+                        "xtransitionlower",
+                        "xtrlower",
+                        "transitiononlowersurface",
+                        "transitionlocationonthelowersurface",
+                        "transitiononthelowersurface",
+                        "transitionlocationlower",
+                        "transitionl",
+                        "transitionlower",
+                        "transitionlowersurface",
+                        "xtrbot",
+                        "xtrb",
+                        "xtpl",
+                        "xtriplower",
+                        "triponlowersurface",
+                        "triplocationonthelowersurface",
+                        "tripl",
+                        "triplower",
+                        "xtp_l",
+                        "xtru",
+                        "xtransitionupper",
+                        "xtrupper",
+                        "transitiononuppersurface",
+                        "transitionlocationontheuppersurface",
+                        "transitionontheuppersurface",
+                        "transitionlocationupper",
+                        "transitionu",
+                        "transitionupper",
+                        "transitionuppersurface",
+                        "xtrtop",
+                        "xtrt",
+                        "xtpu",
+                        "xtripupper",
+                        "triponuppersurface",
+                        "triplocationontheuppersurface",
+                        "tripu",
+                        "tripupper",
+                        "xtp_u"
+                    ],
+                    "description": "The name of the parameter that is being modified.  It is likely that this function will be called only by using one of the enumerated parameters followed by a value.  For example, an input of 'alpha 10' should become {'parameter':'alpha', 'value':'10'}, and 'alpha (-10,10,21)' should become {'parameter':'alpha', 'value':'(-10,10,21)'} and similar.  "
+                },
+                "value": {
+                    "type": "string",
+                    "description": "The value to set the parameter to.  This can be a single number, a list of number contained within parenthesis, ex: (-10,10,30), or a list contained withing square brackets, ex: [1,2,3,4,5]"
+                }
+            },
+            "required": [
+                "toolName",
+                "caseIndex",
+                "geometryIndex",
+                "parameter",
+                "value"
+            ]
+        }
+    },
+    {
+        "name": "analysis_apis_xfoil_addAnalysisCase",
+        "description": "Creates a new XFOIL analysis case.  This function is frequently called via \"xfoil case\", \"xfoil analysis\", \"xfoil analysis case\" or similar",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "toolName": {
+                    "type": "string",
+                    "enum": [
+                        "xfoil"
+                    ],
+                    "description": "The analysis tool being run.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "caseIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the case being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                },
+                "geometryIndex": {
+                    "type": "string",
+                    "description": "The index (an integer) of the geometry being used in the function.  If cannot determine unambiguously, return the string 'None'."
+                }
+            },
+            "required": [
+                "toolName",
+                "caseIndex",
+                "geometryIndex"
+            ]
+        }
+    }
+]

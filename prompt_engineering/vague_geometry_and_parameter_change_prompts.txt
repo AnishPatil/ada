@@ -1,0 +1,350 @@
+make it a little different
+change the shape some
+tweak the airfoil a bit
+adjust the geometry
+modify the profile a little
+change the wing shape some
+make it thinner maybe
+make it thicker a bit
+give it more curve
+give it less curve
+make the top a little bigger
+change the bottom part some
+adjust the upper side
+adjust the lower side
+make the front a little sharper
+make the back a bit thinner
+smooth it out some
+change a few geometry values
+modify the shape in a couple places
+make some small geometry changes
+change the profile and try again
+tweak the section and rerun
+make it a bit different and test it
+adjust the shape then run it
+change the geometry and see what happens
+make the airfoil a little more aggressive
+make the airfoil a little more mild
+change the wing section a bit and test it
+make it look better for flow
+adjust whatever shape settings matter
+change some of the airfoil numbers
+move the shape around a little
+make a few edits to the foil
+change the top and bottom a bit
+update the geometry and run it
+modify the profile and do another case
+tweak the foil and analyze it again
+make the section different and rerun xfoil
+change the shape and get new results
+adjust the geometry and compare it
+try a different angle
+set a different aoa
+change the angle of attack
+use a higher angle
+use a lower angle
+bump the angle up a bit
+bring the angle down some
+change the alpha
+adjust alpha and rerun
+try another alpha value
+run it at a different angle
+see what happens at a higher aoa
+see what happens at a lower aoa
+change the reynolds number
+use a different reynolds
+run this at a higher reynolds
+run this at a lower reynolds
+bump the reynolds up
+bring the reynolds down
+change re and run again
+try another re value
+set a different re
+use some other flow condition
+change the speed related setting
+adjust the mach number
+try a different mach
+change the panel count
+use more panels
+use fewer panels
+change that transition setting
+move the transition point
+adjust the n crit thing
+change the solver settings a bit
+make the case a little different
+change the run settings
+update the analysis inputs
+modify the conditions and rerun
+change the setup and run it again
+try different inputs
+run it under different conditions
+adjust the case a bit
+change the shape and the angle
+make it thinner and use a different aoa
+make it thicker and rerun at another angle
+add some curve and try a higher angle
+reduce the curve and try a lower angle
+change the geometry and the reynolds number
+adjust the profile and use another re
+modify the wing shape and run at different conditions
+tweak the foil and change alpha
+tweak the foil and change re
+change the top side and run at a higher angle
+change the bottom side and run at a lower angle
+make a few geometry edits and rerun xfoil
+adjust the airfoil and test another case
+change the shape and the solver settings
+modify the section and use a different mach
+make it a bit thinner and use more panels
+make it a bit thicker and use fewer panels
+change the profile and move the transition stuff
+adjust the shape and mess with the case settings
+change a couple geometry values and rerun
+try a different geometry and different aoa
+make the airfoil different and test at another reynolds
+update the airfoil and compare a new run
+change some parameters and do it again
+make a few changes all around and rerun
+change the foil, the angle, and the reynolds
+adjust everything a little and test again
+change the shape just a touch
+make the geometry slightly different
+tweak the profile a little more
+adjust the section a bit
+change the airfoil a tiny bit
+make the foil less chunky
+make the foil a bit fuller
+flatten it out some
+curve it a little more
+change the nose shape some
+change the tail shape a little
+shift the upper part a bit
+shift the lower part a bit
+mess with the geometry some
+edit a few shape settings
+change some profile values
+touch up the airfoil
+refine the shape a little
+alter the section some
+change a couple of the shape numbers
+make the profile more tame
+make the profile more intense
+make the section milder
+make the section stronger
+make the shape a little cleaner
+make it look smoother
+make it look less curved
+make it look more curved
+adjust the profile and rerun
+modify the geometry and rerun
+change the shape and rerun
+tweak the airfoil and rerun
+update the section and rerun
+adjust the geometry then test it again
+change the profile then test again
+make the wing shape different and rerun
+try a new shape and rerun the case
+change the geometry a little and compare
+change one of the shape settings
+change some of the top-side values
+change some of the bottom-side values
+alter the upper geometry a bit
+alter the lower geometry a bit
+make the top flatter
+make the bottom flatter
+make the top more curved
+make the bottom more curved
+make the leading part a bit rounder
+make the trailing part a bit cleaner
+trim the shape down a little
+bulk the shape up a little
+stretch the profile feeling a bit
+change the section character some
+make it more airfoil-ish
+make it less extreme
+make it more extreme
+give it a different profile feel
+rework the geometry a little
+rework the profile a little
+adjust a few geometry coefficients
+change some foil coefficients
+change the foil settings and rerun
+change the section settings and rerun
+modify the profile settings and rerun
+try another setup with a slightly different shape
+change the geometry and run another pass
+change the foil and get another set of results
+adjust the wing section and do another run
+make it a little thinner and rerun
+make it a little thicker and rerun
+make it a little flatter and rerun
+make it a little curvier and rerun
+change the shape and use a higher alpha
+change the shape and use a lower alpha
+change the profile and use a higher re
+change the profile and use a lower re
+adjust the geometry and use a different mach
+modify the section and use different panels
+change the airfoil and use another transition setting
+make the foil slimmer and run at a new angle
+make the foil rounder and run at a new angle
+change the profile some and use another reynolds number
+tweak the geometry and use a different solver setup
+adjust the geometry and use a different case
+change the shape and run a fresh case
+use a new angle on this
+use a slightly different angle
+try a smaller aoa
+try a bigger aoa
+move the aoa up
+move the aoa down
+change the angle and see
+adjust the attack angle
+set another angle for this
+run the same thing at another angle
+use a new alpha and rerun
+try a range of angles maybe
+run it across a few angles
+do this at more than one angle
+check it at a couple angles
+try a different lift target maybe
+use cl instead of angle maybe
+change the lift target
+adjust the target lift
+run it for another cl value
+use a lower cl
+use a higher cl
+change the case from alpha to cl maybe
+switch the condition to lift target
+try another operating point
+change the operating condition
+run it in another condition
+use another reynolds setting
+set a new reynolds number
+run it at another reynolds value
+do a lower reynolds case
+do a higher reynolds case
+use a very different reynolds number
+change the re setting
+adjust the re setting
+move the re around a bit
+try a few reynolds numbers
+run this over more than one re
+see it at a couple reynolds numbers
+check another reynolds range
+change the mach setting
+use a different mach value
+raise the mach a little
+lower the mach a little
+run this with another mach
+try a low mach case
+try a higher mach case
+adjust compressibility a bit
+change the flow speed ratio thing
+use another panel count
+raise the panels some
+lower the panels some
+set the panels differently
+change how many panels it uses
+make the mesh finer i guess
+make the mesh rougher i guess
+adjust the discretization a bit
+use another n crit
+raise n crit a little
+lower n crit a little
+change the transition amplification thing
+adjust the transition sensitivity
+move the upper trip point
+move the lower trip point
+change the upper transition location
+change the lower transition location
+adjust the trips a bit
+change the trip settings
+change the transition setup and rerun
+modify the upper transition and run again
+modify the lower transition and run again
+change the upper trip and test again
+change the lower trip and test again
+change the case inputs and rerun
+adjust the solver inputs and rerun
+change the analysis setup and compare
+use a different run setup
+change some analysis values
+change the flow settings
+adjust the flight condition a bit
+modify the operating point
+change the operating setup
+run a slightly different case
+do another run with different settings
+keep the shape and change the case
+keep the geometry and change the conditions
+same airfoil, different case
+same shape, different angle
+same shape, different reynolds
+same section, different mach
+same foil, different transition
+change the geometry and the cl target
+make it thinner and use another cl
+make it thicker and use another cl
+adjust the top side and use another re
+adjust the bottom side and use another re
+change the upper geometry and use a higher mach
+change the lower geometry and use more panels
+change the section and use fewer panels
+make the profile smoother and change alpha
+make the profile sharper and change alpha
+make the section milder and change reynolds
+make the section stronger and change reynolds
+change the foil and trip settings together
+change the shape and n crit together
+change the profile and mach together
+update the geometry and the operating point
+update the shape and the run conditions
+modify the foil and the solver setup
+adjust both the airfoil and the case
+change the profile and everything else a little
+make a geometry tweak and a case tweak
+change one shape thing and one case thing
+change a couple shape things and a couple case things
+alter the section and change the setup
+rework the profile and use another angle
+rework the profile and use another reynolds number
+rework the section and use another mach
+change the airfoil, then run a new condition
+tweak the geometry, then run a new condition
+modify the shape, then test another setup
+change the foil, then compare the result
+adjust the section, then compare the result
+make the shape a bit different and use a new aoa
+make the shape a bit different and use a new re
+make the shape a bit different and use a new mach
+make the geometry slightly different and rerun xfoil
+change a few geometry values and rerun xfoil
+change some case values and rerun xfoil
+adjust the profile and rerun the xfoil case
+modify the foil and rerun the xfoil case
+change the airfoil and rerun the analysis case
+use another geometry and another case
+try a modified geometry with a modified case
+change the section and make the case more aggressive
+change the section and make the case more mild
+make the airfoil slightly thinner and use a slightly higher angle
+make the airfoil slightly thicker and use a slightly lower angle
+make the profile more curved and use a lower reynolds number
+make the profile less curved and use a higher reynolds number
+change the top and use a different mach
+change the bottom and use different panels
+change the nose and use another alpha
+change the tail and use another reynolds number
+change the front part and rerun at another angle
+change the back part and rerun at another angle
+adjust the upper part and lower the reynolds number
+adjust the lower part and raise the reynolds number
+change the section shape and switch the operating point
+modify the profile shape and switch the operating point
+try a different version of the airfoil and rerun
+use a changed-up profile and rerun
+make a new variant and test it
+create a slightly changed version and rerun
+copy this shape, tweak it, and rerun
+make another version and compare it

@@ -1,0 +1,6 @@
+{
+    "query": "give me an airfoil",
+    "interpretation": "generateAirfoil : {'aflString': 'NACA2412', 'uiManager': <ada.ui.uiManager.UIHandler object at 0x16c652780>, 'portNumber': 8000, 'rawInput': 'give me an airfoil'}",
+    "response": "Query task complete",
+    "callMode": "Functions"
+}

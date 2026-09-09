@@ -5,22 +5,35 @@ import os
 import ada
 from llama_index.llms.openai import OpenAI
 import datetime
+import time
+from ada.ui.llm_runtime import detect_provider
+from ada.ui.runtime_preferences import load_llm_config
 
 
 
 pth_to_data = str(ada.ada_path) + os.sep + "data"
 # print(pth_to_data)
 
-def buildRAGqueryEngine(citeSources, llmModel="gpt-4o"):
+def buildRAGqueryEngine(citeSources, llmModel=None):
     reader = SimpleDirectoryReader(input_dir=pth_to_data, recursive=True)
     all_docs = []
     for docs in reader.iter_data():
         for doc in docs:
             all_docs.append(doc)
     index = VectorStoreIndex.from_documents(all_docs)
-    llm = OpenAI(model=llmModel, 
-                 api_key=os.environ.get("OPENAI_API_KEY"), 
-                 organization=os.environ.get("OPENAI_ORG"))
+    saved_config = load_llm_config()
+    provider, local_base = detect_provider()
+    selected_model = llmModel or os.environ.get("OPENAI_MODEL") or saved_config.get("model") or "gpt-5.5"
+
+    llm_kwargs = {
+        "model": selected_model,
+        "api_key": os.environ.get("OPENAI_API_KEY", "local"),
+        "organization": os.environ.get("OPENAI_ORG"),
+    }
+    if provider == "local":
+        llm_kwargs["api_base"] = os.environ.get("OPENAI_BASE_URL") or saved_config.get("base_url") or local_base
+
+    llm = OpenAI(**llm_kwargs)
 
     if citeSources:
         rag_query_engine = CitationQueryEngine.from_args(
@@ -37,7 +50,10 @@ def buildRAGqueryEngine(citeSources, llmModel="gpt-4o"):
 
 def callRAG(uiManager, query, citeSources):
     query_engine = buildRAGqueryEngine(citeSources)
+    start_time = time.perf_counter()
     resp_raw = query_engine.query(query)
+    elapsed_s = time.perf_counter() - start_time
+    print(f"[LLM timing] Total response time: {elapsed_s:.2f} seconds")
     resp = str(resp_raw)
     citations = []
     if citeSources:
@@ -133,8 +149,5 @@ def callRAG(uiManager, query, citeSources):
 # # print(response5)
 
 # # response6 = query_engine.query("""This script for running xfoil did not converge, how can I fix it:
-
-
-
 
 

@@ -1,6 +1,7 @@
 import itertools
 import copy
 import numpy as np
+import time
 # import ada
 from ada.geometry.airfoils.kulfan import Kulfan
 # from ada.analysis.apis import xfoil
@@ -216,7 +217,23 @@ class LocalAPI(baseAPI):
         functionDict['parameters']['required'].extend(['surface','index','value','geometryIndex'])
         
         functionData.append(functionDict)
-        
+        # ================================================================================================================================
+        functionDict = self.make_basic_data()
+        functionDict['name'] = 'increaseCamber'
+        functionDict['description']='increased the airfoil camber'
+
+        functionDict['parameters']['properties']['factor']={}
+        functionDict['parameters']['properties']['factor']['type'] = "string"
+        functionDict['parameters']['properties']['factor']['description']="This is a multiplicative scale parameter that is applied to the Kulfan coefficients that define the airfoil Present implementation can be to use this factor to change both upper and lower surfaces of the airfoil to change its camber. A value or 1 makes no change, less than 1 decreases camber and greater than 1 increases it"
+
+
+        functionDict['parameters']['properties']['location']={}
+        functionDict['parameters']['properties']['location']['type'] = "string"
+        functionDict['parameters']['properties']['location']['description']='the location in fraction of chord (from 0 to 1) where the camber change will take effect. 0 is the leading edge and 1 is the trailing edge.'
+
+        functionDict['parameters']['required'].extend(['factor', 'location'])
+
+        functionData.append(functionDict)
         # ================================================================================================================================
         functionDict = self.make_basic_data()
         functionDict['name']='changeActiveGeometry'
@@ -446,24 +463,73 @@ class LocalAPI(baseAPI):
         if geometryIndex=='None':
             geometryIndex = uiManager.activeGeometry+1
 
+        try:
+            index_str = str(index).strip()
+            if index_str.lower().startswith('k'):
+                index_str = index_str[1:].strip()
+            index_str = index_str.replace('[', '').replace(']', '').replace('_', '')
+            normalized_index = int(index_str)
+        except Exception:
+            raise ValueError(f"invalid index '{index}'")
+
+        # The UI and tool schema are 1-based (K[1], K[2], ...). If the model
+        # emits a 0-based index, coerce K[0] to the first coefficient instead
+        # of accidentally editing the last one through Python's [-1] indexing.
+        if normalized_index == 0:
+            normalized_index = 1
+
+        if normalized_index < 1:
+            raise ValueError(f"invalid index '{index}': geometry indices must be >= 1")
+
         if uiManager.geometryItems[int(geometryIndex)-1].mutableLock == True:
             self.copyGeometry(uiManager,geometryIndex)
             uiManager.activeGeometry = len(uiManager.geometryItems)-1
 
         afl = uiManager.geometryItems[uiManager.activeGeometry]
+        max_index = len(afl.upperCoefficients)
+        if normalized_index > max_index:
+            raise ValueError(
+                f"invalid index '{index}': geometry has {max_index} coefficients per surface"
+            )
 
         if surface == 'lower':
-            afl.lowerCoefficients[int(index)-1] = float(value)
+            old_value = float(afl.lowerCoefficients[normalized_index-1])
+            afl.lowerCoefficients[normalized_index-1] = float(value)
+            current_surface_values = [float(v) for v in afl.lowerCoefficients]
 
         elif surface == 'upper':
-            afl.upperCoefficients[int(index)-1] = float(value)
+            old_value = float(afl.upperCoefficients[normalized_index-1])
+            afl.upperCoefficients[normalized_index-1] = float(value)
+            current_surface_values = [float(v) for v in afl.upperCoefficients]
 
         else:
             raise ValueError('invalid surface')
 
         tsh = self.changeActiveGeometry(uiManager, uiManager.activeGeometry+1)
 
-        return "Query task complete"
+        return (
+            f"Modified geometry {int(geometryIndex)}: set {surface} surface "
+            f"K[{normalized_index}] from {old_value:.6f} to {float(value):.6f}. "
+            f"Current {surface} coefficients: {[round(v, 6) for v in current_surface_values]}"
+        )
+    
+    def increaseCamber(self, uiManager, factor, location, **kwargs):
+        #geometryIndex = uiManager.activeGeometry+1
+        factor = float(factor)
+        location = float(location)
+        afl = uiManager.geometryItems[uiManager.activeGeometry]
+        
+        tau = copy.deepcopy(afl.tau)
+
+        for i in range(0, len(afl.upperCoefficients)):
+            afl.upperCoefficients[i] *= factor
+            afl.lowerCoefficients[i] *= factor
+        
+        afl.scaleThickness(tau)
+        
+        
+
+
         
 #     def printAirfoilCoordinates(self):
 #         pass
@@ -912,6 +978,7 @@ class UIHandler(object):
                     step_summaries = []
                     opt = 'No task performed'
                     augmented_prompt = ipt
+                    total_model_wait_s = 0.0
 
                     while True:
                         iter_count += 1
@@ -919,7 +986,10 @@ class UIHandler(object):
                             opt = f"Stopped after {max_iters} tool iterations to avoid an infinite loop."
                             break
 
+                        llm_start_time = time.perf_counter()
                         responses_result = sendToOpenAI(augmented_prompt, functionData)
+                        llm_elapsed_s = time.perf_counter() - llm_start_time
+                        total_model_wait_s += llm_elapsed_s
 
                         # Defensive checks in case the LLM chooses to respond normally (no tool call)
                         if not hasattr(responses_result, "output") or not responses_result.output:
@@ -929,6 +999,7 @@ class UIHandler(object):
                             except Exception:
                                 model_text = None
                             opt = model_text if model_text else "No further actions requested."
+                            print(f"[LLM timing] Total response time: {total_model_wait_s:.2f} seconds")
                             break
 
                         # Responses API may include messages/reasoning before function calls; find the first function_call item.
@@ -952,6 +1023,7 @@ class UIHandler(object):
                             except Exception:
                                 model_text = None
                             opt = model_text if model_text else "No further actions requested."
+                            print(f"[LLM timing] Total response time: {total_model_wait_s:.2f} seconds")
                             break
 
                         print("==================================================")
@@ -1048,7 +1120,15 @@ class UIHandler(object):
                                     s = s[:max_len] + "...(truncated)"
                                 return s
 
-                            step_summary = f"[TOOL RESULT] {functionName}: " + _summarize(tool_result)
+                            summarized_args = {
+                                k: v for k, v in inputs.items()
+                                if k not in ('uiManager', 'portNumber', 'rawInput') and not str(k).startswith('_')
+                            }
+                            step_summary = (
+                                f"[TOOL RESULT] {functionName} "
+                                f"args={_summarize(summarized_args, max_len=300)} "
+                                f"result={_summarize(tool_result, max_len=300)}"
+                            )
                             step_summaries.append(step_summary)
 
                             # Augment the prompt so the model can plan the next step.
@@ -1056,6 +1136,9 @@ class UIHandler(object):
                                 ipt
                                 + "\n\n"
                                 + "\n".join(step_summaries)
+                                + "\n\nFor geometry-edit requests that span multiple K coefficients, keep track of which indices are already complete. "
+                                  "Do not reuse the same value across many different K indices unless the user explicitly asked for the same value. "
+                                  "Use the reported current coefficients to choose index-specific values that better fit the requested shape change."
                                 + "\n\nIf more tool calls are needed to complete the user's request, propose exactly one next function call now. "
                                   "Otherwise, respond with plain text and no function call."
                             )
@@ -1068,6 +1151,7 @@ class UIHandler(object):
                             opt = f"FAILURE:  OpenAI called for function '{functionName}' that is not available"
                             c.interpretation = "Attempted to call a function"
                             c.response = opt
+                            print(f"[LLM timing] Total response time: {total_model_wait_s:.2f} seconds")
                             break
 
                     # Make sure we propagate a reasonable response string if nothing else set it
@@ -1121,4 +1205,3 @@ class UIHandler(object):
     def callRAG(self,query,citeSources):
         resp = callRAG(self, query,citeSources)
         return resp
-

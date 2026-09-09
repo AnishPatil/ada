@@ -1,0 +1,350 @@
+make something and test it
+give me a shape and run it
+start a profile and analyze it
+make the shape and see how it does
+set something up and run a case
+make a wing section and test it
+create something to run in xfoil
+give me an airfoil and check it
+make one and run the analysis
+start the geometry and run it
+make a foil and test it
+set up a profile and simulate it
+make something wing shaped and run it
+build a section and see what happens
+give me a shape and evaluate it
+make the airfoil part and run the solver
+create a geometry and do the xfoil thing
+start an airfoil and analyze it
+make some geometry and run a case
+give me anything usable and test it
+pick a shape and run it
+load something and analyze it
+make a basic one and run it
+create whatever works and test it
+start with any airfoil and run it
+make one of those and check performance
+give me a wing profile and test it
+set up a wing section and run xfoil
+make a section and see the numbers
+create the shape then do analysis
+make the geometry then run the case
+give me a profile and go analyze it
+set up the usual airfoil workflow
+do the airfoil and xfoil part
+make a shape and do xfoil on it
+can you make something and run it
+can you set up a profile and test it
+can you make an airfoil and just analyze it
+help me get something running in xfoil
+get me a shape and test it out
+make something for xfoil and run it
+start something aerodynamic and test it
+create a wing thing and analyze it
+make an airfoil maybe and run it
+set up anything reasonable and test it
+make a default profile and run a case
+give me some airfoil geometry and analyze it
+make a section for me and run it
+put together a profile and test it
+create a foil and evaluate it
+make whatever airfoil you want and run it
+pick something from the library and analyze it
+load an airfoil and do a run
+give me a starting shape and test it
+make a new geometry and run analysis
+set up the geometry and the case
+make the first shape and run it
+start an xfoil run with some airfoil
+create an airfoil and just go with xfoil
+do a full run starting from nothing
+start from scratch and test something
+make something simple and evaluate it
+build something basic and run the solver
+generate a profile and see how it performs
+create a section and see what the data says
+make an aero profile and run analysis
+give me a foil profile and test it
+start a wing section and run a simulation
+make an air shape and run the numbers
+set up something to analyze in xfoil
+create anything aerodynamic and run it
+do an airfoil run for me
+get an airfoil going and test it
+make a cross section and analyze it
+create a 2d wing shape and run it
+make the profile then test the profile
+start with geometry then do xfoil
+do the geometry part and then the run
+make a shape and get results
+set me up with something and analyze it
+get a section ready and run it
+make one and see the lift and drag
+give me a shape and get some data
+start a foil and run a case on it
+make some foil geometry and test it
+create the wing profile thing and run it
+set up a fresh profile and analyze it
+make a placeholder airfoil and run it
+load whatever airfoil and test it
+pick a reasonable airfoil and analyze it
+do a quick airfoil run
+make something and give me xfoil results
+start a test case with a new shape
+make a basic section and run the case
+set up an arbitrary airfoil and test it
+make some geometry and just run xfoil
+start with any profile and do the analysis
+create a profile, set up the case, and go
+build the airfoil and run whatever case fits
+make an airfoil and do the rest
+just make something and run xfoil
+start a wing profile and see how it performs
+give me a geometry and an xfoil run
+make a section and check the aero stuff
+start a profile and get some output
+make a shape and run whatever test fits
+give me a foil and see how it behaves
+load something and see the results
+make an airfoil and see what the solver says
+start a wing thing and run numbers on it
+set up an airfoil and get data
+put together a profile and run the model
+use some airfoil and run a case
+pick something basic and run it through
+create a section and get performance data
+make a generic airfoil and test it
+make a normal profile and analyze it
+load a starter shape and run it
+make a first draft airfoil and test it
+create a baseline profile and run analysis
+set up a standard section and check it
+make a starter geometry and analyze it
+get me a section and run the solver
+make some geometry and see the aero
+give me a wing profile and get results
+create a foil shape and get numbers
+start from a profile and run a study
+use a profile and do the analysis
+make the shape and collect some data
+build a section and get xfoil output
+start a case from a new airfoil
+make one and send it through xfoil
+create one and check lift and drag
+load a wing section and run a case
+grab an airfoil and see how it does
+make an airfoil for testing and run it
+set up a quick airfoil case
+make a quick section and analyze it
+do a run on a new profile
+create a new foil and run the numbers
+start a geometry and get an xfoil result
+make the foil and start the analysis
+find a profile and run it
+pick any section and test it
+use any airfoil and analyze it
+start with whatever airfoil and go
+make something reasonable and run the case
+set up a simple airfoil workflow
+do the normal shape plus analysis thing
+make a profile and run the aero test
+create a section and run the aero test
+make some airfoil geometry and get data
+make an editable airfoil and run it
+load a common airfoil and analyze it
+bring in a profile and run xfoil
+use a shape from the library and test it
+find a standard airfoil and run the solver
+make the starting shape and do a run
+make a profile to test and then test it
+set up some geometry and hit run
+make a foil and see the coefficients
+do a quick test on a new airfoil
+create an airfoil and get coefficients
+make a wing section and get coefficients
+start a profile and get lift and drag
+set up a foil and get the pressure data
+make some geometry and check performance
+just build a section and analyze it
+just pick an airfoil and run it
+just set up a foil and test it
+make a baseline airfoil and run the case
+create a baseline section and see results
+make an ordinary airfoil and analyze it
+give me a profile and a solver run
+start a section and a test run
+make a shape and start analysis on it
+create a foil and start analysis on it
+load a profile and start analysis on it
+use some section geometry and test it
+make an airfoil and simulate it
+make a wing profile and simulate it
+start a cross section and evaluate it
+make an aerodynamic shape and test it
+give me some geometry and run the analysis
+set up a simple section and run it
+make a fresh wing profile and analyze it
+build a fresh airfoil and check it
+create a first-pass section and test it
+make a first-pass profile and run it
+start a default airfoil and analyze it
+use a default profile and run the case
+make a working airfoil and test it
+set up a working profile and run it
+create a usable airfoil and analyze it
+give me anything from the library and test it
+pick a common profile and see the output
+make a quick airfoil and get results
+start a quick profile run
+do a simple airfoil analysis from scratch
+start from nothing and get xfoil data
+make the airfoil and gather data
+create a profile and gather output
+make some geometry and collect results
+set up a section and collect coefficients
+build a section and collect data
+make a foil and collect data
+make a normal-looking airfoil and test it
+use a normal-looking profile and run it
+make a standard-looking section and analyze it
+pick something mild and test it
+make something not too weird and run it
+just make whatever section works and analyze it
+use whatever profile is easiest and run it
+start with a section from the files and test it
+make a section from the database and analyze it
+load some default geometry and run a case
+create some starter geometry and evaluate it
+set up an airfoil case from a new geometry
+make the geometry and the xfoil case
+create a profile and the case and run
+make an airfoil and go straight to results
+start a section and go straight to results
+make a profile and give me the data
+give me an airfoil and the analysis output
+set up the airfoil and show how it performs
+make the foil and show the aero performance
+create the profile and tell me how it does
+run a study on a new airfoil
+do a solver run on a new section
+test a fresh wing profile
+analyze a fresh airfoil
+make a shape and check the flow on it
+set up a shape and check the flow on it
+create a profile and see the flow behavior
+make a section and see the flow behavior
+start an arbitrary profile and analyze it
+use an arbitrary airfoil and run xfoil
+set up any airfoil and run the numbers
+make a generic section and run xfoil
+build a generic profile and test it
+create a plain airfoil and analyze it
+make a plain section and run the solver
+use a plain profile and check performance
+make an ordinary section and run a case
+start the airfoil workflow and finish the run
+do the whole airfoil run workflow
+make the shape, create the case, and run it
+set up the shape, set up the case, and run it
+pick a profile, set up a case, and go
+load an airfoil, create a case, and run it
+start a new profile and finish a run
+build a shape and get xfoil data back
+make some foil geometry and get output
+get a new section going and analyze it
+make a wing section and get the results
+create a wing profile and get the results
+set up a foil profile and test it
+use some foil geometry and run a case
+start a foil section and do a run
+make a starter airfoil and go analyze it
+create a starter profile and run the solver
+set up a starter section and test it
+make a test airfoil and analyze it
+create a test profile and get numbers
+start a test section and see results
+make a section for testing and run it
+build a profile for testing and analyze it
+pick some airfoil and tell me the performance
+use some profile and tell me the results
+make an airfoil and tell me the lift and drag
+create a section and tell me the coefficients
+start a profile and tell me what happens
+set up a profile and tell me how it performs
+make a wing profile and do whatever analysis fits
+create an airfoil and do whatever run makes sense
+use any shape and just run the analysis
+pick whatever section works and just test it
+make a section and get a quick result
+make a profile and get a quick result
+load a section and get a quick result
+build a foil and get a quick read
+start an airfoil and get a quick read
+use a fresh profile and run the test
+create a new section and run the test
+start from a default airfoil and check it
+use a default section and check it
+make a starter profile and see the numbers
+set up a baseline foil and run xfoil
+build a baseline section and get output
+create a generic wing profile and test it
+make a simple wing section and run it
+give me a basic airfoil and a case run
+make a profile from the library and analyze it
+load a profile from the database and run it
+create a starter foil and evaluate it
+get some geometry in there and analyze it
+build the section first and then run it
+create the profile first and then run it
+set up the airfoil first and then run it
+make a section i can test right away
+give me a profile and run it right away
+start some geometry and run it right away
+make a plain starter airfoil and run it
+load a simple profile and test it
+set up a straightforward section and analyze it
+make a usable default airfoil and run a case
+create a regular wing profile and get data
+start a baseline section and run the solver
+pick a standard profile and do a run
+use a common airfoil and see what it does
+make a reasonable section and test performance
+create a reasonable airfoil and get xfoil output
+set up a starter foil and get some coefficients
+make a quick baseline profile and analyze it
+load a default airfoil and run analysis
+create a generic foil and see the output
+make a simple foil and run the case
+start a simple section and get results
+give me a basic profile and analyze it
+set up a basic foil and run it through xfoil
+pick a normal section and test it out
+make a not-too-weird airfoil and run it
+create a mild profile and check performance
+start a common wing section and run it
+build a standard airfoil and get data back
+make some default geometry and run analysis
+load a starter section and get coefficients
+create a run-ready airfoil and test it
+make a profile i can test now and run it
+start with a profile from the library and analyze it
+use a wing section from the files and run it
+make an airfoil to analyze right now
+create a section to analyze right now
+set up a fresh profile and get xfoil data
+make a first-pass airfoil and get a result
+build a first-pass section and analyze it
+start a baseline profile and see how it performs
+use some starter geometry and run the case
+make whatever baseline shape works and test it
+pick a default airfoil and run the numbers
+set up a normal-looking profile and analyze it
+make a quick section and get lift and drag
+load a plain profile and run a solver case
+build a usable wing profile and test it
+create a starter wing section and run it
+make the initial airfoil and finish the analysis
+set up the initial profile and finish the run
+make the airfoil geometry and get xfoil results
+create the section geometry and get results
+start the wing profile and return the data

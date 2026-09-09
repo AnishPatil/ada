@@ -203,6 +203,89 @@ table {
   display: flex;
 }
 
+.settings-panel {
+  border: 2px solid black;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: #f7fbff;
+}
+
+.settings-panel.hidden,
+.settings-panel[hidden] {
+  display: none;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.settings-row:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  font-size: 0.8vw;
+  min-width: 72px;
+}
+@media screen and (min-width: 1500px) {
+  .settings-label {
+     font-size: 14px;
+  }
+}
+
+.settings-input {
+  border: 1px solid #7aa5d8;
+  border-radius: 4px;
+  padding: 6px 8px;
+  flex: 1 1 180px;
+}
+
+.settings-input-wide {
+  flex: 2 1 360px;
+}
+
+.settings-toggle-button {
+  border: 0px;
+  background-color: #d9ecff;
+  border-radius: 4px;
+  flex: 1 0 auto;
+  max-width: 118px;
+  margin-right: 5px;
+  padding-left: 8px;
+  padding-right: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-toggle-button:hover {
+  background-color: #beddff;
+}
+
+.settings-save-button {
+  border: 0px;
+  background-color: #0065cc;
+  color: #ffffff;
+  border-radius: 4px;
+  flex: 0 0 auto;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.settings-save-button:hover {
+  background-color: #004f9e;
+}
+
+.settings-status {
+  color: #333333;
+  min-height: 14px;
+}
+
 .send-button {
 }
 

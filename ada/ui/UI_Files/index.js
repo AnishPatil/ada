@@ -1,6 +1,75 @@
-import { updateGraphicWindow } from './geometryWindowHandler.js'
+import { updateGraphicWindow } from './geometryWindowHandler.js?v=20260413b'
 window.runMain  = runMain;
 window.copyText = copyText;
+
+let llmSettingsVisible = false;
+
+
+function setSettingsVisibility(visible) {
+    llmSettingsVisible = visible;
+    const panel = document.getElementById('llm-settings-panel');
+    panel.classList.toggle('hidden', !visible);
+    panel.hidden = !visible;
+    document.getElementById('toggle-llm-settings-button').setAttribute('aria-expanded', visible ? 'true' : 'false');
+}
+
+
+function describeRuntime(runtime) {
+    if (!runtime) {
+        return 'AI settings unavailable.';
+    }
+
+    let description = `Active: ${runtime.provider}`;
+    if (runtime.model) {
+        description += ` | model: ${runtime.model}`;
+    }
+    if (runtime.base_url) {
+        description += ` | base URL: ${runtime.base_url}`;
+    }
+    return description;
+}
+
+
+function populateSettingsForm(payload) {
+    const config = payload?.config || {};
+    const runtime = payload?.runtime || {};
+
+    document.getElementById('llm-provider-dropdown').value = config.provider || 'auto';
+    document.getElementById('llm-model-input').value = config.model || '';
+    document.getElementById('llm-base-url-input').value = config.base_url || '';
+    document.getElementById('llm-settings-status').textContent = describeRuntime(runtime);
+}
+
+
+async function loadLLMSettings() {
+    const response = await fetch('/api/llm-config');
+    const payload = await response.json();
+    populateSettingsForm(payload);
+}
+
+
+async function saveLLMSettings() {
+    const provider = document.getElementById('llm-provider-dropdown').value;
+    const model = document.getElementById('llm-model-input').value.trim();
+    const baseUrl = document.getElementById('llm-base-url-input').value.trim();
+    const status = document.getElementById('llm-settings-status');
+
+    status.textContent = 'Saving AI settings...';
+
+    const response = await fetch('/api/llm-config', {
+      method: 'POST',
+      body: JSON.stringify({
+        provider: provider,
+        model: model,
+        base_url: baseUrl,
+      }),
+      headers: {
+        'Content-type': 'application/json; charset=UTF-8',
+      }
+    });
+    const payload = await response.json();
+    populateSettingsForm(payload);
+}
 
 
 async function onLoad() {
@@ -50,6 +119,8 @@ async function onLoad() {
     copy_buttons.forEach(cb => {
     cb.addEventListener('click', copyText);
     });
+
+    await loadLLMSettings();
 
 }
 
@@ -191,7 +262,7 @@ function nextMode() {
 }
 
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
         // if (event.shiftKey && event.key === 'Enter') {
@@ -206,6 +277,14 @@ document.addEventListener('DOMContentLoaded', function () {
     selectElement.style.backgroundColor = getSelectorBackgroundColor(selectedValue);
   });
 
+  document.getElementById('toggle-llm-settings-button').addEventListener('click', function () {
+    setSettingsVisibility(!llmSettingsVisible);
+  });
+
+  document.getElementById('save-llm-settings-button').addEventListener('click', async function () {
+    await saveLLMSettings();
+  });
+
 
   var inputText = document.getElementById('input_text');
   document.addEventListener('keydown', function (event) {
@@ -218,7 +297,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   });
 
-  window.onload = onLoad();
+  setSettingsVisibility(false);
+  await onLoad();
 
 });
 
