@@ -1,6 +1,0 @@
-{
-    "query": "generate a naca2412 airfoil",
-    "interpretation": "generateAirfoil : {'aflString': 'NACA2412', 'uiManager': <ada.ui.uiManager.UIHandler object at 0x16cfc3e50>, 'portNumber': 8000, 'rawInput': 'generate a naca2412 airfoil'}",
-    "response": "Query task complete",
-    "callMode": "Functions"
-}
