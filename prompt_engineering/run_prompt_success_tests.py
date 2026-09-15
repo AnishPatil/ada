@@ -26,6 +26,7 @@ import datetime as dt
 import io
 import os
 from pathlib import Path
+import re
 import sys
 import time
 from typing import Any
@@ -43,6 +44,7 @@ MPL_CACHE_DIR = REPO_ROOT / "prompt_engineering" / ".matplotlib_cache"
 MPL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 os.environ.setdefault("MPLCONFIGDIR", str(MPL_CACHE_DIR))
 
+from ada.ui.llm_runtime import resolve_model  # noqa: E402
 from ada.ui.uiManager import UIHandler  # noqa: E402
 
 
@@ -102,13 +104,13 @@ def parse_args() -> argparse.Namespace:
         "--output",
         type=Path,
         default=None,
-        help="CSV output path. Defaults to prompt_engineering/results/<timestamp>.csv.",
+        help="CSV output path. Defaults to prompt_engineering/results/<model>/<timestamp>.csv.",
     )
     parser.add_argument(
         "--session-root",
         type=Path,
         default=None,
-        help="Directory for per-iteration ADA session files.",
+        help="Directory for per-iteration ADA session files. Defaults to a model-specific directory.",
     )
     parser.add_argument(
         "--show-ada-logs",
@@ -289,10 +291,21 @@ def truncate(value: str, max_chars: int) -> str:
     return value if len(value) <= max_chars else value[:max_chars] + "...(truncated)"
 
 
-def default_output_path() -> Path:
-    #specify default output path for result CSV file, with timestamped file name
-    timestamp = dt.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    return REPO_ROOT / "prompt_engineering" / "results" / f"prompt_success_{timestamp}.csv"
+def model_directory_name(model_name: str) -> str:
+    """Create a portable folder name while keeping the exact model name in the CSV."""
+    safe_name = re.sub(r"[^A-Za-z0-9._-]+", "-", model_name.strip())
+    return safe_name.strip(".-") or "unknown-model"
+
+
+def default_output_path(model_folder: str, timestamp: str) -> Path:
+    #specify default output path for result CSV file, grouped by selected model
+    return (
+        REPO_ROOT
+        / "prompt_engineering"
+        / "results"
+        / model_folder
+        / f"prompt_success_{timestamp}.csv"
+    )
 
 
 
@@ -300,16 +313,22 @@ def main() -> int:
     #use above functions to obtain setup arguments (criteria, iterations, etc), prompts, and output path
     args = parse_args()
     prompts = load_prompts(args)
-    output_path = args.output or default_output_path()
+    model_name = resolve_model()
+    model_folder = model_directory_name(model_name)
+    timestamp = dt.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    output_path = args.output or default_output_path(model_folder, timestamp)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    timestamp = dt.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     #create root folder and CSV file with specified columns
     session_root = args.session_root or (
-        REPO_ROOT / "prompt_engineering" / "test_sessions" / timestamp
+        REPO_ROOT / "prompt_engineering" / "test_sessions" / model_folder / timestamp
     )
 
+    print(f"Testing model: {model_name} (output folder: {model_folder})")
+
     fieldnames = [
+        "model",
         "prompt_index",
         "iteration_number",
         "prompt",
@@ -375,6 +394,7 @@ def main() -> int:
                 #populate CSV columns with output information
                 writer.writerow(
                     {
+                        "model": model_name,
                         "prompt_index": prompt_index,
                         "iteration_number": iteration,
                         "prompt": prompt,

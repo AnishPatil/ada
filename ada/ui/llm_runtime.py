@@ -7,6 +7,10 @@ from openai import OpenAI
 from ada.ui.runtime_preferences import load_llm_config
 
 
+LOCAL_DEFAULT_MODEL = "gpt-oss:20b"
+CLOUD_DEFAULT_MODEL = "gpt-5.5"
+
+
 def is_wsl():
     if platform.system() != "Linux":
         return False
@@ -78,16 +82,29 @@ def detect_provider():
     return "openai", ""
 
 
+def resolve_model(model=None, provider=None, saved_config=None):
+    """Return the model name selected by the same precedence rules as the client."""
+    if provider is None:
+        provider, _ = detect_provider()
+    if saved_config is None:
+        saved_config = load_llm_config()
+
+    configured_model = model or _clean_env("OPENAI_MODEL") or saved_config.get("model")
+    if configured_model:
+        return configured_model
+    return LOCAL_DEFAULT_MODEL if provider == "local" else CLOUD_DEFAULT_MODEL
+
+
 def build_client_and_model(model=None):
     provider, local_base = detect_provider()
     saved_config = load_llm_config()
+    selected_model = resolve_model(model, provider=provider, saved_config=saved_config)
 
     if provider == "local":
         # OPENAI_BASE_URL can override the local default if desired.
         base_url = _clean_env("OPENAI_BASE_URL") or saved_config.get("base_url") or local_base
         api_key = os.environ.get("OPENAI_API_KEY", "local")
         client = OpenAI(api_key=api_key, base_url=base_url)
-        selected_model = model or _clean_env("OPENAI_MODEL") or saved_config.get("model") or "gpt-oss:20b"
         return client, selected_model
 
     # OPENAI cloud path
@@ -104,14 +121,13 @@ def build_client_and_model(model=None):
         kwargs["organization"] = org
 
     client = OpenAI(**kwargs)
-    selected_model = model or _clean_env("OPENAI_MODEL") or saved_config.get("model") or "gpt-5.5"
     return client, selected_model
 
 
 def resolve_runtime_info(model=None):
     provider, local_base = detect_provider()
     saved_config = load_llm_config()
-    selected_model = model or _clean_env("OPENAI_MODEL") or saved_config.get("model")
+    selected_model = resolve_model(model, provider=provider, saved_config=saved_config)
     info = {
         "platform": runtime_platform(),
         "provider": provider,

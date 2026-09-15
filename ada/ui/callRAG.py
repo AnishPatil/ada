@@ -6,7 +6,7 @@ import ada
 from llama_index.llms.openai import OpenAI
 import datetime
 import time
-from ada.ui.llm_runtime import detect_provider
+from ada.ui.llm_runtime import detect_provider, resolve_model
 from ada.ui.runtime_preferences import load_llm_config
 
 
@@ -23,7 +23,7 @@ def buildRAGqueryEngine(citeSources, llmModel=None):
     index = VectorStoreIndex.from_documents(all_docs)
     saved_config = load_llm_config()
     provider, local_base = detect_provider()
-    selected_model = llmModel or os.environ.get("OPENAI_MODEL") or saved_config.get("model") or "gpt-5.5"
+    selected_model = resolve_model(llmModel, provider=provider, saved_config=saved_config)
 
     llm_kwargs = {
         "model": selected_model,
@@ -49,11 +49,13 @@ def buildRAGqueryEngine(citeSources, llmModel=None):
     return rag_query_engine
 
 def callRAG(uiManager, query, citeSources):
+    selected_model = resolve_model()
     query_engine = buildRAGqueryEngine(citeSources)
     start_time = time.perf_counter()
     resp_raw = query_engine.query(query)
     elapsed_s = time.perf_counter() - start_time
     print(f"[LLM timing] Total response time: {elapsed_s:.2f} seconds")
+    print(f"[LLM runtime] Model used: {selected_model}")
     resp = str(resp_raw)
     citations = []
     if citeSources:
@@ -149,5 +151,4 @@ def callRAG(uiManager, query, citeSources):
 # # print(response5)
 
 # # response6 = query_engine.query("""This script for running xfoil did not converge, how can I fix it:
-
 

@@ -7,6 +7,7 @@ from ada.geometry.airfoils.kulfan import Kulfan
 # from ada.analysis.apis import xfoil
 # from ada.analysis.apis.xfoil.standardPlot import standardPlot
 from ada.ui.openAIwrapper import sendToOpenAI
+from ada.ui.llm_runtime import resolve_model
 import matplotlib.pyplot as plt
 import matplotlib
 from pathlib import Path
@@ -979,6 +980,7 @@ class UIHandler(object):
                     opt = 'No task performed'
                     augmented_prompt = ipt
                     total_model_wait_s = 0.0
+                    model_used = resolve_model()
 
                     while True:
                         iter_count += 1
@@ -990,6 +992,7 @@ class UIHandler(object):
                         responses_result = sendToOpenAI(augmented_prompt, functionData)
                         llm_elapsed_s = time.perf_counter() - llm_start_time
                         total_model_wait_s += llm_elapsed_s
+                        model_used = getattr(responses_result, "model", None) or model_used
 
                         # Defensive checks in case the LLM chooses to respond normally (no tool call)
                         if not hasattr(responses_result, "output") or not responses_result.output:
@@ -1000,6 +1003,7 @@ class UIHandler(object):
                                 model_text = None
                             opt = model_text if model_text else "No further actions requested."
                             print(f"[LLM timing] Total response time: {total_model_wait_s:.2f} seconds")
+                            print(f"[LLM runtime] Model used: {model_used}")
                             break
 
                         # Responses API may include messages/reasoning before function calls; find the first function_call item.
@@ -1024,6 +1028,7 @@ class UIHandler(object):
                                 model_text = None
                             opt = model_text if model_text else "No further actions requested."
                             print(f"[LLM timing] Total response time: {total_model_wait_s:.2f} seconds")
+                            print(f"[LLM runtime] Model used: {model_used}")
                             break
 
                         print("==================================================")
@@ -1152,6 +1157,7 @@ class UIHandler(object):
                             c.interpretation = "Attempted to call a function"
                             c.response = opt
                             print(f"[LLM timing] Total response time: {total_model_wait_s:.2f} seconds")
+                            print(f"[LLM runtime] Model used: {model_used}")
                             break
 
                     # Make sure we propagate a reasonable response string if nothing else set it

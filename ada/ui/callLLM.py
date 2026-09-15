@@ -9,6 +9,7 @@ def callLLM(uiManager, ipt, model=None):
     full_resp = client.responses.create(model = model, input = ipt)
     elapsed_s = time.perf_counter() - start_time
     print(f"[LLM timing] Total response time: {elapsed_s:.2f} seconds")
+    print(f"[LLM runtime] Model used: {getattr(full_resp, 'model', None) or model}")
     resp = full_resp.output_text
 
     resp = resp.replace('\n', '<br>\n')
