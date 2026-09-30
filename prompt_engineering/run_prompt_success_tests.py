@@ -15,6 +15,13 @@ Examples:
         --criterion coefficients-changed \
         --surface upper \
         --min-coefficients-changed 8
+
+    python prompt_engineering/run_prompt_success_tests.py \
+        --prompt "make me a good airfoil" \
+        --iterations 20 \
+        --criterion allowed-tools \
+        --allowed-tools generateAirfoil \
+        --required-tools generateAirfoil
 """
 
 from __future__ import annotations
@@ -73,7 +80,7 @@ def parse_args() -> argparse.Namespace:
         default=[],
         help="Prompt to run before each measured test prompt. Can be repeated.",
     )
-    #specify criteria to test for success, e.g. no errors, geometry count (exact or at least), data count, analysis case count, or coefficient changes
+    #specify criteria to test for success, e.g. no errors, geometry count (exact or at least), data count, analysis case count, coefficient changes, elapsed time, or allowed tools
     #can add more if needed
     parser.add_argument(
         "--criterion",
@@ -84,6 +91,8 @@ def parse_args() -> argparse.Namespace:
             "data-at-least",
             "analysis-at-least",
             "coefficients-changed",
+            "time-elapsed",
+            "allowed-tools",
         ],
         default="geometry-exact",
     )
@@ -92,6 +101,29 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--expected-data-items", type=int, default=1)
     parser.add_argument("--expected-analysis-cases", type=int, default=1)
     parser.add_argument("--min-coefficients-changed", type=int, default=1)
+    parser.add_argument(
+        "--max-time-seconds",
+        type=float,
+        default=None,
+        help=(
+            "Maximum end-to-end ADA execution time for the time-elapsed criterion. "
+            "Runs that exceed it are scored as failures after they finish."
+        ),
+    )
+    parser.add_argument(
+        "--allowed-tools",
+        nargs="+",
+        default=None,
+        metavar="TOOL",
+        help="Tools permitted by the allowed-tools criterion.",
+    )
+    parser.add_argument(
+        "--required-tools",
+        nargs="+",
+        default=None,
+        metavar="TOOL",
+        help="Tools that must appear at least once for the allowed-tools criterion.",
+    )
     #can check for upper, lower, or both surfaces for K coefficient changes
     parser.add_argument(
         "--surface",
@@ -118,7 +150,24 @@ def parse_args() -> argparse.Namespace:
         help="Show ADA/model debug logs while each prompt runs.",
     )
     parser.add_argument("--notes-max-chars", type=int, default=500)
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.criterion == "time-elapsed" and args.max_time_seconds is None:
+        parser.error("--criterion time-elapsed requires --max-time-seconds.")
+    if args.max_time_seconds is not None and args.max_time_seconds <= 0:
+        parser.error("--max-time-seconds must be greater than zero.")
+    if args.criterion == "allowed-tools":
+        if not args.allowed_tools:
+            parser.error("--criterion allowed-tools requires --allowed-tools.")
+        if not args.required_tools:
+            parser.error("--criterion allowed-tools requires --required-tools.")
+        disallowed_required_tools = set(args.required_tools) - set(args.allowed_tools)
+        if disallowed_required_tools:
+            parser.error(
+                "--required-tools must also be listed in --allowed-tools: "
+                + ", ".join(sorted(disallowed_required_tools))
+            )
+    return args
 
 
 def load_prompts(args: argparse.Namespace) -> list[str]:
@@ -162,6 +211,19 @@ def response_text(handler: UIHandler) -> str:
     if not handler.calls:
         return ""
     return str(handler.calls[-1].response)
+
+
+def recorded_tool_calls(calls: list[Any]) -> list[str]:
+    """Return an ordered list of model-requested tools from measured prompt calls."""
+    tool_calls = []
+    for call in calls:
+        tool_calls.extend(str(tool) for tool in getattr(call, "tool_calls", []))
+    return tool_calls
+
+
+def display_tool_calls(tool_calls: list[str]) -> str:
+    """Use a readable ordered sequence that can also be split for later analysis."""
+    return " -> ".join(tool_calls) if tool_calls else "(none)"
 
 
 def count_analysis_cases(handler: UIHandler) -> int:
@@ -230,6 +292,8 @@ def score_iteration(
     handler: UIHandler,
     before_prompt_snapshot: dict[str, Any],
     after_prompt_snapshot: dict[str, Any],
+    time_seconds: float,
+    tool_calls: list[str],
     error: str | None,
 ) -> tuple[bool, str, int]:
     #Function decided whether a test is a success or not
@@ -283,6 +347,36 @@ def score_iteration(
         )
         return success, note, coefficients_changed
 
+    if args.criterion == "time-elapsed":
+        if args.max_time_seconds is None:
+            raise ValueError("time-elapsed requires max_time_seconds")
+        success = time_seconds <= args.max_time_seconds
+        note = (
+            f"Maximum {args.max_time_seconds:.3f} seconds; "
+            f"observed {time_seconds:.3f} seconds."
+        )
+        return success, note, coefficients_changed
+
+    if args.criterion == "allowed-tools":
+        allowed_tools = set(args.allowed_tools or [])
+        required_tools = set(args.required_tools or [])
+        unexpected_tools = [tool for tool in tool_calls if tool not in allowed_tools]
+        missing_tools = sorted(required_tools - set(tool_calls))
+
+        if not unexpected_tools and not missing_tools:
+            return (
+                True,
+                f"Accepted tool sequence: {display_tool_calls(tool_calls)}.",
+                coefficients_changed,
+            )
+
+        details = []
+        if unexpected_tools:
+            details.append("Unexpected tools: " + ", ".join(unexpected_tools))
+        if missing_tools:
+            details.append("Missing required tools: " + ", ".join(missing_tools))
+        return False, "; ".join(details) + ".", coefficients_changed
+
     raise ValueError(f"Unsupported criterion: {args.criterion}")
 
 
@@ -334,13 +428,18 @@ def main() -> int:
         "prompt",
         "success",
         "time_seconds",
+        "max_time_seconds",
         "cumulative_success_rate",
         "notes",
         "criterion",
+        "allowed_tools",
+        "required_tools",
         "geometry_count",
         "analysis_case_count",
         "data_count",
         "coefficients_changed",
+        "tool_call_count",
+        "tool_calls",
         "final_response",
         "error",
         "session_directory",
@@ -372,16 +471,20 @@ def main() -> int:
 
                 #records snapshots before and after the prompt has ran
                 before_prompt_snapshot = geometry_snapshot(handler)
+                measured_call_start = len(handler.calls)
                 time_seconds, error = run_prompt(handler, prompt, args.mode, args.show_ada_logs)
                 after_prompt_snapshot = geometry_snapshot(handler)
                 if setup_errors and error is None:
                     error = "; ".join(setup_errors)
+                measured_tool_calls = recorded_tool_calls(handler.calls[measured_call_start:])
 
                 success, notes, coefficients_changed = score_iteration(
                     args,
                     handler,
                     before_prompt_snapshot,
                     after_prompt_snapshot,
+                    time_seconds,
+                    measured_tool_calls,
                     error,
                 )
                 if success:
@@ -400,13 +503,22 @@ def main() -> int:
                         "prompt": prompt,
                         "success": "yes" if success else "no",
                         "time_seconds": f"{time_seconds:.3f}",
+                        "max_time_seconds": (
+                            f"{args.max_time_seconds:.3f}"
+                            if args.max_time_seconds is not None
+                            else ""
+                        ),
                         "cumulative_success_rate": f"{cumulative_success_rate:.4f}",
                         "notes": truncate(notes, args.notes_max_chars),
                         "criterion": args.criterion,
+                        "allowed_tools": " | ".join(args.allowed_tools or []),
+                        "required_tools": " | ".join(args.required_tools or []),
                         "geometry_count": len(handler.geometryItems),
                         "analysis_case_count": count_analysis_cases(handler),
                         "data_count": len(handler.dataItems),
                         "coefficients_changed": coefficients_changed,
+                        "tool_call_count": len(measured_tool_calls),
+                        "tool_calls": display_tool_calls(measured_tool_calls),
                         "final_response": truncate(final_response, args.notes_max_chars),
                         "error": truncate(error or "", args.notes_max_chars),
                         "session_directory": str(session_dir),

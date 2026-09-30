@@ -65,6 +65,8 @@ class Call(object):
         self.query         = None
         self.interpretation = None
         self.response      = None
+        # Ordered model-requested tools, retained for prompt-test workflow analysis.
+        self.tool_calls    = []
 
     def print_html(self, callIndex=0, isLast=False):
         pstr = ''
@@ -942,6 +944,7 @@ class UIHandler(object):
                     ipt_split = ipt.split("::")
 
                     if ipt_split[0] in functionAllocationDict.keys():
+                        c.tool_calls.append(ipt_split[0])
                         if len(ipt_split) == 1:
                             opt = functionAllocationDict[ipt_split[0]]()
                             processed_inputs = ''
@@ -1031,6 +1034,7 @@ class UIHandler(object):
                             print(f"[LLM runtime] Model used: {model_used}")
                             break
 
+                        c.tool_calls.append(functionName)
                         print("==================================================")
                         print(f"Iteration Count: {iter_count}")
                         print(f"responses_result output: {responses_result.output}")

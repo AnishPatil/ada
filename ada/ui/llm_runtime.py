@@ -8,7 +8,7 @@ from ada.ui.runtime_preferences import load_llm_config
 
 
 LOCAL_DEFAULT_MODEL = "gpt-oss:20b"
-CLOUD_DEFAULT_MODEL = "gpt-5.5"
+CLOUD_DEFAULT_MODEL = "gpt-6.1-sol"
 
 
 def is_wsl():
