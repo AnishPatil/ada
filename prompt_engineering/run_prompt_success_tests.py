@@ -136,13 +136,19 @@ def parse_args() -> argparse.Namespace:
         "--output",
         type=Path,
         default=None,
-        help="CSV output path. Defaults to prompt_engineering/results/<model>/<timestamp>.csv.",
+        help=(
+            "CSV output path. Defaults to "
+            "prompt_engineering/results/<model>/<timestamp>/prompt_success_<timestamp>.csv."
+        ),
     )
     parser.add_argument(
         "--session-root",
         type=Path,
         default=None,
-        help="Directory for per-iteration ADA session files. Defaults to a model-specific directory.",
+        help=(
+            "Directory for per-iteration ADA session files. Defaults to the sessions "
+            "subfolder beside the result CSV."
+        ),
     )
     parser.add_argument(
         "--show-ada-logs",
@@ -391,15 +397,20 @@ def model_directory_name(model_name: str) -> str:
     return safe_name.strip(".-") or "unknown-model"
 
 
-def default_output_path(model_folder: str, timestamp: str) -> Path:
-    #specify default output path for result CSV file, grouped by selected model
+def default_run_directory(model_folder: str, timestamp: str) -> Path:
+    """Return the shared directory for one model-specific test run."""
     return (
         REPO_ROOT
         / "prompt_engineering"
         / "results"
         / model_folder
-        / f"prompt_success_{timestamp}.csv"
+        / timestamp
     )
+
+
+def default_output_path(run_directory: Path, timestamp: str) -> Path:
+    # Keep the summary CSV at the root of the run directory.
+    return run_directory / f"prompt_success_{timestamp}.csv"
 
 
 
@@ -410,14 +421,13 @@ def main() -> int:
     model_name = resolve_model()
     model_folder = model_directory_name(model_name)
     timestamp = dt.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    run_directory = default_run_directory(model_folder, timestamp)
 
-    output_path = args.output or default_output_path(model_folder, timestamp)
+    output_path = args.output or default_output_path(run_directory, timestamp)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    #create root folder and CSV file with specified columns
-    session_root = args.session_root or (
-        REPO_ROOT / "prompt_engineering" / "test_sessions" / model_folder / timestamp
-    )
+    # Keep detailed iteration sessions with the summary for this test run.
+    session_root = args.session_root or (output_path.parent / "sessions")
 
     print(f"Testing model: {model_name} (output folder: {model_folder})")
 
