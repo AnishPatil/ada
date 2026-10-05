@@ -28,6 +28,32 @@ Users interact with ADA by typing requests such as:
 
 The UI layer translates those requests into tool calls and updates the current design session.
 
+#### Multi-function requests
+
+ADA processes every function call in a model response. Calls run sequentially,
+with geometry, analysis-case, and result-data prerequisites executed first. For
+example, a batch containing airfoil generation, XFOIL case creation, and `run`
+can complete in that order even if the model lists `run` first.
+
+Unspecified indices (`None`) use the relevant preceding call's output. Explicit
+1-based indices remain explicit. If a prerequisite appears later, ADA can move
+a single identified creator ahead of its dependent call. Ambiguous dependencies
+are reported to the model instead of guessing which new object to use.
+
+Each session's `call_log.json` stores `tool_results` with arguments, resolved
+indices, execution order within the batch, results, and status (`succeeded`,
+`failed`, `skipped`, or `reused`). Failed prerequisites block their dependents;
+independent calls can continue. Repeated call IDs are not executed twice within
+the same prompt. The CSV tool-call count counts requested calls, including
+calls that could not execute; inspect `tool_results` for execution outcomes.
+Text-only replies and response statuses are saved in `model_responses`.
+
+The loop allows at most 20 model responses and 100 tool executions per prompt.
+This handles calls the model actually requests; it does not guarantee that the
+model requests every action in an arbitrary natural-language prompt. Actions
+requiring unknown numeric results can be requested in the next model response,
+after the previous results have been supplied.
+
 ### 2. Airfoil generation and geometry management
 
 ADA can create and manage multiple airfoils during a session.

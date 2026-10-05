@@ -739,6 +739,7 @@ class API_UI(baseAPI):
 
     def addAnalysisCase(self, uiManager, **kwargs):
         rc1 = AnalysisCase()
+        rc1.geometryIndex = uiManager.activeGeometry
 
         if rc1.toolName not in list(uiManager.analysisItems.keys()):
             uiManager.analysisItems[rc1.toolName] = []
@@ -746,7 +747,6 @@ class API_UI(baseAPI):
         uiManager.analysisItems[rc1.toolName].append(rc1)
         uiManager.activeAnalysis = (rc1.toolName , len(uiManager.analysisItems[rc1.toolName])-1 )
         return "Query task complete"
-
 
 
 

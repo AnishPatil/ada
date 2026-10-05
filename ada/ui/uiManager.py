@@ -1,13 +1,13 @@
 import itertools
 import copy
 import numpy as np
-import time
 # import ada
 from ada.geometry.airfoils.kulfan import Kulfan
 # from ada.analysis.apis import xfoil
 # from ada.analysis.apis.xfoil.standardPlot import standardPlot
 from ada.ui.openAIwrapper import sendToOpenAI
 from ada.ui.llm_runtime import resolve_model
+from ada.ui.tool_execution import run_tool_loop
 import matplotlib.pyplot as plt
 import matplotlib
 from pathlib import Path
@@ -67,6 +67,8 @@ class Call(object):
         self.response      = None
         # Ordered model-requested tools, retained for prompt-test workflow analysis.
         self.tool_calls    = []
+        self.tool_results  = []
+        self.model_responses = []
 
     def print_html(self, callIndex=0, isLast=False):
         pstr = ''
@@ -486,7 +488,9 @@ class LocalAPI(baseAPI):
 
         if uiManager.geometryItems[int(geometryIndex)-1].mutableLock == True:
             self.copyGeometry(uiManager,geometryIndex)
-            uiManager.activeGeometry = len(uiManager.geometryItems)-1
+            geometryIndex = len(uiManager.geometryItems)
+
+        uiManager.activeGeometry = int(geometryIndex)-1
 
         afl = uiManager.geometryItems[uiManager.activeGeometry]
         max_index = len(afl.upperCoefficients)
@@ -567,6 +571,7 @@ class LocalAPI(baseAPI):
 
         rc1 = uiManager.analysisItems[toolName][int(caseIndex)-1].free_copy()
         uiManager.analysisItems[toolName].append(rc1)
+        uiManager.activeAnalysis = (toolName, len(uiManager.analysisItems[toolName])-1)
         return "Query task complete"
         
     def copyGeometry(self, uiManager, geometryIndex, **kwargs):
@@ -576,6 +581,7 @@ class LocalAPI(baseAPI):
         afl = copy.deepcopy(uiManager.geometryItems[int(geometryIndex)-1])
         afl.mutableLock = False  # being lazy before goemetry refactor
         uiManager.geometryItems.append(afl)
+        uiManager.activeGeometry = len(uiManager.geometryItems)-1
 
         return "Query task complete"
 
@@ -963,214 +969,10 @@ class UIHandler(object):
 
 
                 else:
-                    opt = 'Called to OpenAI'
-
-                    # ============================ Multi-tool loop (chained function calling) ============================
-                    # Strategy:
-                    # 1) Ask the model for the next function call.
-                    # 2) Execute it locally if available.
-                    # 3) Append a concise summary of the tool result back into the prompt so the model can decide the next step.
-                    # 4) Repeat until the model stops requesting tools or we hit a safety cap.
-                    #
-                    # Notes:
-                    # - We keep the API surface the same (sendToOpenAI(prompt, functionData)).
-                    # - We do not assume the wrapper supports a message array; instead we iteratively augment the prompt.
-                    # - Safety: max 8 iterations to avoid infinite loops.
-                    # ================================================================================================
-                    max_iters = 20
-                    iter_count = 0
-                    step_summaries = []
-                    opt = 'No task performed'
-                    augmented_prompt = ipt
-                    total_model_wait_s = 0.0
-                    model_used = resolve_model()
-
-                    while True:
-                        iter_count += 1
-                        if iter_count > max_iters:
-                            opt = f"Stopped after {max_iters} tool iterations to avoid an infinite loop."
-                            break
-
-                        llm_start_time = time.perf_counter()
-                        responses_result = sendToOpenAI(augmented_prompt, functionData)
-                        llm_elapsed_s = time.perf_counter() - llm_start_time
-                        total_model_wait_s += llm_elapsed_s
-                        model_used = getattr(responses_result, "model", None) or model_used
-
-                        # Defensive checks in case the LLM chooses to respond normally (no tool call)
-                        if not hasattr(responses_result, "output") or not responses_result.output:
-                            # No tool call; treat any textual output as final response if present
-                            try:
-                                model_text = getattr(responses_result, "text", None) or getattr(responses_result, "output_text", None)
-                            except Exception:
-                                model_text = None
-                            opt = model_text if model_text else "No further actions requested."
-                            print(f"[LLM timing] Total response time: {total_model_wait_s:.2f} seconds")
-                            print(f"[LLM runtime] Model used: {model_used}")
-                            break
-
-                        # Responses API may include messages/reasoning before function calls; find the first function_call item.
-                        functionName = None
-                        raw_args = "{}"
-                        try:
-                            for out_item in responses_result.output:
-                                item_type = getattr(out_item, "type", None)
-                                if item_type == "function_call":
-                                    functionName = getattr(out_item, "name", None)
-                                    raw_args = getattr(out_item, "arguments", "{}")
-                                    break
-                        except Exception:
-                            functionName = None
-                            raw_args = "{}"
-
-                        if not functionName:
-                            # Model decided to stop calling tools
-                            try:
-                                model_text = getattr(responses_result, "text", None) or getattr(responses_result, "output_text", None)
-                            except Exception:
-                                model_text = None
-                            opt = model_text if model_text else "No further actions requested."
-                            print(f"[LLM timing] Total response time: {total_model_wait_s:.2f} seconds")
-                            print(f"[LLM runtime] Model used: {model_used}")
-                            break
-
-                        c.tool_calls.append(functionName)
-                        print("==================================================")
-                        print(f"Iteration Count: {iter_count}")
-                        print(f"responses_result output: {responses_result.output}")
-                        print(f"function name: {functionName}")
-                        print(f"arguments(raw): {raw_args}")
-
-                        prompt = "generate a NACA2412 airfoil, make and xfoil case, and run it"
-
-                        if functionName in functionAllocationDict.keys():
-                            functionHandle = functionAllocationDict[functionName]
-
-                            # Parse tool arguments robustly
-                            try:
-                                inputs = json.loads(raw_args)
-                                if not isinstance(inputs, dict):
-                                    inputs = {}
-                            except Exception:
-                                inputs = {}
-
-                            # Standardize: for "run" requests, defer to ACTIVE selection only if not explicitly provided
-                            if functionName == 'run':
-                                # Preserve what the model provided for traceability
-                                inputs['_provided_geometryIndex'] = inputs.get('geometryIndex', None)
-                                inputs['_provided_caseIndex'] = inputs.get('caseIndex', None)
-
-                                # Geometry handling
-                                gi = inputs.get('geometryIndex', None)
-                                if gi in (None, 'None', '', '0', 0):
-                                    # Not explicitly provided or '0' (string or int) -> defer to active via 'None' and log resolution
-                                    inputs['geometryIndex'] = 'None'
-                                    inputs.setdefault('_resolvedBy', 'activeDefaults')
-                                    inputs['_resolved_geometryIndex_1b'] = (
-                                        str(self.activeGeometry + 1) if self.activeGeometry is not None else None
-                                    )
-                                else:
-                                    # Explicit geometry provided -> honor it
-                                    inputs['geometryIndex'] = str(gi)
-                                    inputs['_resolved_geometryIndex_1b'] = str(gi)
-                                    inputs['_resolvedBy'] = 'explicitGeometry'
-
-                                # Case handling
-                                ci = inputs.get('caseIndex', None)
-                                if ci in (None, 'None', '', '0', 0):
-                                    inputs['caseIndex'] = 'None'
-                                    # resolved case index (1-based) for logging if we know activeAnalysis
-                                    inputs['_resolved_caseIndex_1b'] = (
-                                        str(self.activeAnalysis[1] + 1) if (self.activeAnalysis is not None and len(self.activeAnalysis) > 1) else None
-                                    )
-                                    if '_resolvedBy' not in inputs:
-                                        inputs['_resolvedBy'] = 'activeDefaults'
-                                else:
-                                    inputs['caseIndex'] = str(ci)
-                                    inputs['_resolved_caseIndex_1b'] = str(ci)
-                                    # If geometry was explicit, keep explicit; otherwise mark explicitCase
-                                    if inputs.get('_resolvedBy') != 'explicitGeometry':
-                                        inputs['_resolvedBy'] = 'explicitCase'
-
-                            # Log the effective arguments that will actually be used to call the tool
-                            try:
-                                effective_args = {k: v for k, v in inputs.items() if k not in ('uiManager','portNumber','rawInput') and not str(k).startswith('_')}
-                                print(f"arguments(effective): {json.dumps(effective_args)}")
-                            except Exception as _e_print_effective:
-                                print(f"arguments(effective): <unavailable due to {type(_e_print_effective).__name__}: {_e_print_effective}>" )
-
-                            # Inject runtime context
-                            inputs['uiManager']  = self
-                            inputs['portNumber'] = portNumber
-                            inputs['rawInput']   = ipt
-
-                            # Execute the tool
-                            try:
-                                tool_result = functionHandle(**inputs)
-                            except Exception as e:
-                                tool_result = f"ERROR while executing {functionName}: {e!r}"
-
-                            # Record interpretation and tool result
-                            try:
-                                c.interpretation = f"{functionName} : {json.dumps(inputs)}"
-                            except Exception:
-                                c.interpretation = f"{functionName} : {str(inputs)}"
-
-                            c.response = tool_result
-                            opt = tool_result  # keep last tool result as the final opt if the model stops next
-
-                            # Build a concise summary to feed back into the next iteration
-                            def _summarize(val, max_len=600):
-                                try:
-                                    s = json.dumps(val, default=_json_default)
-                                except Exception:
-                                    s = str(val)
-                                if len(s) > max_len:
-                                    s = s[:max_len] + "...(truncated)"
-                                return s
-
-                            summarized_args = {
-                                k: v for k, v in inputs.items()
-                                if k not in ('uiManager', 'portNumber', 'rawInput') and not str(k).startswith('_')
-                            }
-                            step_summary = (
-                                f"[TOOL RESULT] {functionName} "
-                                f"args={_summarize(summarized_args, max_len=300)} "
-                                f"result={_summarize(tool_result, max_len=300)}"
-                            )
-                            step_summaries.append(step_summary)
-
-                            # Augment the prompt so the model can plan the next step.
-                            augmented_prompt = (
-                                ipt
-                                + "\n\n"
-                                + "\n".join(step_summaries)
-                                + "\n\nFor geometry-edit requests that span multiple K coefficients, keep track of which indices are already complete. "
-                                  "Do not reuse the same value across many different K indices unless the user explicitly asked for the same value. "
-                                  "Use the reported current coefficients to choose index-specific values that better fit the requested shape change."
-                                + "\n\nIf more tool calls are needed to complete the user's request, propose exactly one next function call now. "
-                                  "Otherwise, respond with plain text and no function call."
-                            )
-
-                            # Continue loop to allow the model to choose the next tool or stop.
-                            continue
-
-                        else:
-                            # Requested tool is not available; stop gracefully
-                            opt = f"FAILURE:  OpenAI called for function '{functionName}' that is not available"
-                            c.interpretation = "Attempted to call a function"
-                            c.response = opt
-                            print(f"[LLM timing] Total response time: {total_model_wait_s:.2f} seconds")
-                            print(f"[LLM runtime] Model used: {model_used}")
-                            break
-
-                    # Make sure we propagate a reasonable response string if nothing else set it
-                    if isinstance(opt, (dict, list, set, tuple, np.ndarray, Path)):
-                        try:
-                            opt = json.dumps(opt, default=_json_default)
-                        except Exception:
-                            opt = str(opt)
-                    # ================================================================================================
+                    run_tool_loop(
+                        self, c, ipt, functionData, functionAllocationDict,
+                        sendToOpenAI, portNumber, resolve_model(),
+                    )
 
             elif callMode == 'RAG':
                 opt = self.callRAG(ipt, False)
