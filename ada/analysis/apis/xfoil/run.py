@@ -100,7 +100,6 @@ def run(mode,
     
     topline = 'load ' + tempDatfile.name + ' \n' + 'airfoil \n'
     
-    proc = subprocess.Popen([path_to_XFOIL], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
     estr = ''
     estr += 'plop\n'
     estr += 'g\n'
@@ -185,8 +184,6 @@ def run(mode,
         exFile.write(estr)
         exFile.close()
     
-    # proc.stdin.write(estr.encode())
-
     cmd = ''
     cmd += 'timelimit -t%d '%(timeout)
     cmd += path_to_XFOIL
@@ -194,8 +191,6 @@ def run(mode,
     cmd += ' >' + tempStdoutFile.name
 
     try:
-        # stdout_val = proc.communicate(timeout=5)[0]
-        # tempStdoutFile.write(stdout_val.decode())
         subprocess.run(cmd, shell=True)
     except:
         # process timed out, will be handled below as a normal failure
